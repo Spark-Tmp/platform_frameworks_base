@@ -5555,6 +5555,12 @@ public final class Settings {
         public static final String NETWORK_TRAFFIC_RATE_TEXT_SCALE_FACTOR = "network_traffic_rate_text_scale_factor";
 
         /**
+         * Three Finger Gesture from Oppo
+         * @hide
+         */
+        public static final String THREE_FINGER_GESTURE = "three_finger_gesture";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
