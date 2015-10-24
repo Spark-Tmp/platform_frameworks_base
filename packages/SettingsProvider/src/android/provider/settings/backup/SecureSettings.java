@@ -219,5 +219,6 @@ public class SecureSettings {
         Settings.Secure.VOLUME_LINK_NOTIFICATION,
         Settings.Secure.GESTURE_NAVBAR_LENGTH_MODE,
         Settings.Secure.DOZE_ON_CHARGE,
+        Settings.Secure.POWER_MENU_HIDE_ON_SECURE,
     };
 }
