@@ -112,6 +112,7 @@ public interface NativeInputManagerService {
     void setPointerAcceleration(float acceleration);
 
     void setShowTouches(boolean enabled);
+    void setSwapKeys(boolean enabled);
 
     void setInteractive(boolean interactive);
 
@@ -291,6 +292,9 @@ public interface NativeInputManagerService {
 
         @Override
         public native void setShowTouches(boolean enabled);
+
+        @Override
+        public native void setSwapKeys(boolean enabled);
 
         @Override
         public native void setInteractive(boolean interactive);

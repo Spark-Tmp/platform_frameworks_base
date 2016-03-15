@@ -168,6 +168,9 @@ public class InputManagerService extends IInputManager.Stub
     private static final int MSG_DELIVER_TABLET_MODE_CHANGED = 6;
     private static final int MSG_POINTER_DISPLAY_ID_CHANGED = 7;
 
+    private static final int KEY_MASK_BACK = 0x02;
+    private static final int KEY_MASK_APP_SWITCH = 0x10;
+
     private static final int DEFAULT_VIBRATION_MAGNITUDE = 192;
     private static final AdditionalDisplayInputProperties
             DEFAULT_ADDITIONAL_DISPLAY_INPUT_PROPERTIES = new AdditionalDisplayInputProperties();
@@ -485,6 +488,7 @@ public class InputManagerService extends IInputManager.Stub
         registerLongPressTimeoutObserver();
         registerMaximumObscuringOpacityForTouchSettingObserver();
         registerBlockUntrustedTouchesModeSettingObserver();
+        registerSwapKeysSettingObserver();
 
         mContext.registerReceiver(new BroadcastReceiver() {
             @Override
@@ -493,6 +497,7 @@ public class InputManagerService extends IInputManager.Stub
                 updateShowTouchesFromSettings();
                 updateAccessibilityLargePointerFromSettings();
                 updateDeepPressStatusFromSettings("user switched");
+                updateSwapKeysSettings();
             }
         }, new IntentFilter(Intent.ACTION_USER_SWITCHED), null, mHandler);
 
@@ -502,6 +507,7 @@ public class InputManagerService extends IInputManager.Stub
         updateDeepPressStatusFromSettings("just booted");
         updateMaximumObscuringOpacityForTouchFromSettings();
         updateBlockUntrustedTouchesModeFromSettings();
+        updateSwapKeysSettings();
     }
 
     // TODO(BT) Pass in parameter for bluetooth system
@@ -1961,6 +1967,39 @@ public class InputManagerService extends IInputManager.Stub
             return;
         }
         mNative.setMaximumObscuringOpacityForTouch(opacity);
+    }
+
+    public void updateSwapKeysSettings() {
+        int setting = getSwapKeysSetting(0);
+        mNative.setSwapKeys(setting != 0);
+    }
+
+    private void registerSwapKeysSettingObserver() {
+        if (!canSwapKeys()) return;
+        mContext.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.SWAP_NAVIGATION_KEYS), true,
+                new ContentObserver(mHandler) {
+                    @Override
+                    public void onChange(boolean selfChange) {
+                        updateSwapKeysSettings();
+                    }
+                }, UserHandle.USER_ALL);
+    }
+
+    private boolean canSwapKeys() {
+        int deviceHardwareKeys = mContext.getResources()
+                .getInteger(com.android.internal.R.integer.config_deviceHardwareKeys);
+        return (deviceHardwareKeys & KEY_MASK_APP_SWITCH) != 0 && (deviceHardwareKeys & KEY_MASK_BACK) != 0;
+    }
+
+    private int getSwapKeysSetting(int defaultValue) {
+        int result = defaultValue;
+        try {
+            result = Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.SWAP_NAVIGATION_KEYS, UserHandle.USER_CURRENT);
+        } catch (SettingNotFoundException snfe) {
+        }
+        return result;
     }
 
     private int getShowTouchesSetting(int defaultValue) {
