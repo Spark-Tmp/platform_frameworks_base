@@ -5898,6 +5898,12 @@ public final class Settings {
                 "key_app_switch_double_tap_custom_app_fr_name";
                 
         /**
+         * Adjust media artwork wallpaper blur level on lockscreen
+         * @hide
+         */
+        public static final String LOCKSCREEN_MEDIA_BLUR = "lockscreen_media_blur";
+                
+        /**
          * Switch between filters for lockscreen album art
          * @hide
          */
