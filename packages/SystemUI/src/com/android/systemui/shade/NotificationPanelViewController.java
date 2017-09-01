@@ -73,6 +73,7 @@ import android.transition.TransitionManager;
 import android.util.IndentingPrintWriter;
 import android.util.Log;
 import android.util.MathUtils;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -98,6 +99,7 @@ import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
 import com.android.internal.policy.ScreenDecorationsUtils;
 import com.android.internal.policy.SystemBarUtils;
 import com.android.internal.util.LatencyTracker;
+import com.android.internal.util.nad.ActionUtils;
 import com.android.keyguard.ActiveUnlockConfig;
 import com.android.keyguard.FaceAuthApiRequestReason;
 import com.android.keyguard.KeyguardClockSwitch.ClockSize;
@@ -368,6 +370,10 @@ public final class NotificationPanelViewController extends PanelViewController {
     private int mQsTrackingPointer;
     private VelocityTracker mQsVelocityTracker;
     private boolean mQsTracking;
+
+    private final GestureDetector mDoubleTapToSleepGesture;
+    private boolean mIsLockscreenDoubleTapEnabled;
+    private int mStatusBarHeaderHeight;
 
     /**
      * If set, the ongoing touch gesture might both trigger the expansion in {@link
@@ -903,6 +909,14 @@ public final class NotificationPanelViewController extends PanelViewController {
         mQsFrameTranslateController = qsFrameTranslateController;
         updateUserSwitcherFlags();
         mKeyguardBottomAreaViewModel = keyguardBottomAreaViewModel;
+        mDoubleTapToSleepGesture = new GestureDetector(mView.getContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                ActionUtils.switchScreenOff(mView.getContext());
+                return true;
+            }
+        });
         onFinishInflate();
         keyguardUnlockAnimationController.addKeyguardUnlockAnimationListener(
                 new KeyguardUnlockAnimationController.KeyguardUnlockAnimationListener() {
@@ -1069,6 +1083,7 @@ public final class NotificationPanelViewController extends PanelViewController {
         mLockscreenNotificationQSPadding = mResources.getDimensionPixelSize(
                 R.dimen.notification_side_paddings);
         mUdfpsMaxYBurnInOffset = mResources.getDimensionPixelSize(R.dimen.udfps_burn_in_offset_y);
+        mStatusBarHeaderHeight = mResources.getDimensionPixelSize(R.dimen.status_bar_height);
         mSplitShadeScrimTransitionDistance = mResources.getDimensionPixelSize(
                 R.dimen.split_shade_scrim_transition_distance);
     }
@@ -4123,6 +4138,14 @@ public final class NotificationPanelViewController extends PanelViewController {
         updateMaxDisplayedNotifications(true);
     }
 
+    public void setLockscreenDoubleTapToSleep(boolean isDoubleTapEnabled) {
+        mIsLockscreenDoubleTapEnabled = isDoubleTapEnabled;
+    }
+
+    public void setSbDoubleTapToSleep(boolean isDoubleTapEnabled) {
+        mIsSbDoubleTapEnabled = isDoubleTapEnabled;
+    }
+
     public void setAlpha(float alpha) {
         mView.setAlpha(alpha);
     }
@@ -4253,6 +4276,14 @@ public final class NotificationPanelViewController extends PanelViewController {
                 if (mLastEventSynthesizedDown && event.getAction() == MotionEvent.ACTION_UP) {
                     expand(true /* animate */);
                 }
+
+                if ((mIsLockscreenDoubleTapEnabled && !mPulsing && !mDozing
+                        && mBarState == StatusBarState.KEYGUARD) ||
+                        (!mQsExpanded && mIsSbDoubleTapEnabled
+                        && event.getY() < mStatusBarHeaderHeight)) {
+                    mDoubleTapToSleepGesture.onTouchEvent(event);
+                }
+
                 initDownStates(event);
 
                 // If pulse is expanding already, let's give it the touch. There are situations

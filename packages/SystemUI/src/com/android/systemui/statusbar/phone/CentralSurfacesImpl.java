@@ -152,6 +152,7 @@ import com.android.systemui.charging.WirelessChargingAnimation;
 import com.android.systemui.classifier.FalsingCollector;
 import com.android.systemui.colorextraction.SysuiColorExtractor;
 import com.android.systemui.dagger.SysUISingleton;
+import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.dagger.qualifiers.UiBackground;
 import com.android.systemui.demomode.DemoMode;
@@ -245,6 +246,7 @@ import com.android.systemui.util.DumpUtilsKt;
 import com.android.systemui.util.WallpaperController;
 import com.android.systemui.util.concurrency.DelayableExecutor;
 import com.android.systemui.util.concurrency.MessageRouter;
+import com.android.systemui.util.settings.SystemSettings;
 import com.android.systemui.volume.VolumeComponent;
 import com.android.wm.shell.bubbles.Bubbles;
 import com.android.wm.shell.startingsurface.SplashscreenContentDrawer;
@@ -679,6 +681,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
             (extractor, which) -> updateTheme();
 
     private final InteractionJankMonitor mJankMonitor;
+    private final SystemSettings mSystemSettings;
 
     private final OnBackInvokedCallback mOnBackInvokedCallback = () -> {
         if (DEBUG) {
@@ -783,7 +786,9 @@ public class CentralSurfacesImpl extends CoreStartable implements
             InteractionJankMonitor jankMonitor,
             DeviceStateManager deviceStateManager,
             WiredChargingRippleController wiredChargingRippleController,
-            IDreamManager dreamManager) {
+            IDreamManager dreamManager,
+            SystemSettings systemSettings,
+            @Background Handler backgroundHandler) {
         super(context);
         mNotificationsController = notificationsController;
         mFragmentService = fragmentService;
@@ -870,6 +875,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
         statusBarWindowStateController.addListener(this::onStatusBarWindowStateChanged);
 
         mScreenOffAnimationController = screenOffAnimationController;
+        mSystemSettings = systemSettings;
 
         mPanelExpansionStateManager.addExpansionListener(this::onPanelExpansionChanged);
 
@@ -880,6 +886,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
         mActivityLaunchAnimator = activityLaunchAnimator;
 
         mGameSpaceManager = new GameSpaceManager(mContext, mKeyguardStateController);
+        mNadSettingsObserver = new NadSettingsObserver(backgroundHandler);
 
         // The status bar background may need updating when the ongoing call status changes.
         mOngoingCallController.addCallback((animate) -> maybeUpdateBarMode());
@@ -961,7 +968,6 @@ public class CentralSurfacesImpl extends CoreStartable implements
         // Set up the initial notification state. This needs to happen before CommandQueue.disable()
         setUpPresenter();
 
-        mNadSettingsObserver = new NadSettingsObserver(mMainHandler);
         mNadSettingsObserver.observe();
         mNadSettingsObserver.update();
 
@@ -1197,8 +1203,6 @@ public class CentralSurfacesImpl extends CoreStartable implements
         mStatusBarTouchableRegionManager.setup(this, mNotificationShadeWindowView);
         mHeadsUpManager.addListener(mNotificationPanelViewController.getOnHeadsUpChangedListener());
         mNotificationPanelViewController.setHeadsUpManager(mHeadsUpManager);
-
-        updateNavigationBar(true);
 
         if (ENABLE_LOCKSCREEN_WALLPAPER && mWallpaperSupported) {
             mLockscreenWallpaper = mLockscreenWallpaperLazy.get();
@@ -1972,44 +1976,84 @@ public class CentralSurfacesImpl extends CoreStartable implements
     }
 
     private class NadSettingsObserver extends ContentObserver {
-        NadSettingsObserver(Handler handler) {
-            super(handler);
+        private final Handler mBackgroundHandler;
+
+        NadSettingsObserver(Handler backgroundHandler) {
+            super(backgroundHandler);
+            mBackgroundHandler = backgroundHandler;
         }
 
         void observe() {
-            ContentResolver resolver = mContext.getContentResolver();
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.FORCE_SHOW_NAVBAR),
-                    false, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.FORCE_SHOW_NAVBAR, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.DOUBLE_TAP_SLEEP_LOCKSCREEN, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.DOUBLE_TAP_SLEEP_GESTURE, this, UserHandle.USER_ALL);
         }
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            if (uri.equals(Settings.System.getUriFor(Settings.System.FORCE_SHOW_NAVBAR))) {
-                updateNavigationBar(false);
+            switch (uri.getLastPathSegment()) {
+                case Settings.System.FORCE_SHOW_NAVBAR:
+                    updateNavigationBar(false);
+                    break;
+                case Settings.System.DOUBLE_TAP_SLEEP_LOCKSCREEN:
+                    updateDoubleTapLsGesture();
+                    break;
+                case Settings.System.DOUBLE_TAP_SLEEP_GESTURE:
+                    updateDoubleTapSbGesture();
+                    break;
             }
         }
 
-        public void update() {
-        }
+        void update() {
+            mBackgroundHandler.post(() -> {
+                updateDoubleTapSbGesture();
+                updateDoubleTapLsGesture();
+                updateNavigationBar(true);
+        });
     }
 
-    private void updateNavigationBar(boolean init) {
-        boolean showNavBar = NadUtils.deviceSupportNavigationBar(mContext);
-        if (init) {
-            if (showNavBar) {
-                mNavigationBarController.createNavigationBars(true, null);
-            }
-        } else {
-            if (showNavBar != mShowNavBar) {
-                if (showNavBar) {
-                    mNavigationBarController.createNavigationBars(true, null);
+        private void updateNavigationBar(boolean init) {
+            boolean showNavBar = NadUtils.deviceSupportNavigationBar(mContext);
+            mMainHandler.post(() -> {
+                if (init) {
+                    if (showNavBar) {
+                        mNavigationBarController.createNavigationBars(true, null);
+                    }
                 } else {
-                    mNavigationBarController.removeNavigationBar(mDisplayId);
+                    if (showNavBar != mShowNavBar) {
+                        if (showNavBar) {
+                            mNavigationBarController.createNavigationBars(true, null);
+                        } else {
+                             mNavigationBarController.removeNavigationBar(mDisplayId);
+                        }
+                    }
                 }
-            }
+                mShowNavBar = showNavBar;
+            });
         }
-        mShowNavBar = showNavBar;
+
+        private void updateDoubleTapSbGesture() {
+            final boolean isDoubleTapSbEnabled = mSystemSettings.getIntForUser(
+                Settings.System.DOUBLE_TAP_SLEEP_GESTURE, 0, UserHandle.USER_CURRENT) == 1;
+            mMainHandler.post(() -> {
+                if (mNotificationPanelViewController != null) {
+                    mNotificationPanelViewController.setSbDoubleTapToSleep(isDoubleTapSbEnabled);
+                }
+                if (mLockscreenShadeTransitionController != null) {
+                    mLockscreenShadeTransitionController.getTouchHelper().updateDoubleTapToSleep(isDoubleTapSbEnabled);
+                }
+            });
+        }
+
+        private void updateDoubleTapLsGesture() {
+            final boolean isDoubleTapLockscreenEnabled = mSystemSettings.getIntForUser(
+                    Settings.System.DOUBLE_TAP_SLEEP_LOCKSCREEN, 0, UserHandle.USER_CURRENT) == 1;
+            mMainHandler.post(() -> {
+                if (mNotificationPanelViewController != null) {
+                    mNotificationPanelViewController.setLockscreenDoubleTapToSleep(isDoubleTapLockscreenEnabled);
+                }
+            });
+        }
     }
 
     private void maybeEscalateHeadsUp() {
