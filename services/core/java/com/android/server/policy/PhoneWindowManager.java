@@ -19,6 +19,7 @@ package com.android.server.policy;
 import static android.Manifest.permission.INTERNAL_SYSTEM_WINDOW;
 import static android.Manifest.permission.SYSTEM_ALERT_WINDOW;
 import static android.Manifest.permission.SYSTEM_APPLICATION_OVERLAY;
+import static android.Manifest.permission.ACCESS_SURFACE_FLINGER;
 import static android.app.AppOpsManager.OP_SYSTEM_ALERT_WINDOW;
 import static android.app.AppOpsManager.OP_TOAST_WINDOW;
 import static android.content.pm.PackageManager.FEATURE_AUTOMOTIVE;
@@ -6053,6 +6054,24 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     @Override
     public boolean hasNavigationBar() {
         return mDefaultDisplayPolicy.hasNavigationBar();
+    }
+
+    @Override
+    public void sendCustomAction(Intent intent) {
+        String action = intent.getAction();
+        if (action != null) {
+            if (ActionUtils.INTENT_SCREENSHOT.equals(action)) {
+                mContext.enforceCallingOrSelfPermission(ACCESS_SURFACE_FLINGER,
+                        TAG + "sendCustomAction permission denied");
+                            interceptScreenshotChord(TAKE_SCREENSHOT_FULLSCREEN,
+                                    SCREENSHOT_KEY_CHORD, getScreenshotChordLongPressDelay());
+            } else if (ActionUtils.INTENT_REGION_SCREENSHOT.equals(action)) {
+                mContext.enforceCallingOrSelfPermission(ACCESS_SURFACE_FLINGER,
+                        TAG + "sendCustomAction permission denied");
+                            interceptScreenshotChord(TAKE_SCREENSHOT_SELECTED_REGION,
+                                    SCREENSHOT_KEY_CHORD, getScreenshotChordLongPressDelay());
+            }
+        }
     }
 
     @Override

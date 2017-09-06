@@ -68,6 +68,7 @@ import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -1189,4 +1190,9 @@ public interface WindowManagerPolicy extends WindowManagerPolicyConstants {
      * A new window on default display has been focused.
      */
     default void onDefaultDisplayFocusChangedLw(WindowState newFocus) {}
+
+    /**
+     * Send some ActionHandler commands to WindowManager.
+     */
+    public void sendCustomAction(Intent intent);
 }
