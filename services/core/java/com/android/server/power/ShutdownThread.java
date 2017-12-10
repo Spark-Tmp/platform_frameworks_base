@@ -326,6 +326,9 @@ public final class ShutdownThread extends Thread {
             } else if (showSysuiReboot()) {
                 return null;
             } else {
+                if (showSysuiReboot()) {
+                    return null;
+                }
                 // Factory reset path. Set the dialog message accordingly.
                 pd.setTitle(context.getText(com.android.internal.R.string.reboot_to_recovery_title));
                 pd.setMessage(context.getText(
