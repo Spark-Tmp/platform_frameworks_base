@@ -29,7 +29,6 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.os.UserHandle;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -287,7 +286,12 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
 
     private void setPercentTextAtCurrentLevel() {
         if (mBatteryPercentView != null) {
-            String percentText = NumberFormat.getPercentInstance().format(mLevel / 100f);
+            // Use the high voltage symbol ⚡ (u26A1 unicode) but prevent the system
+            // to load its emoji colored variant with the uFE0E flag
+            String bolt = "\u26A1\uFE0E";
+            CharSequence mChargeIndicator = mCharging && (mBatteryStyle == BATTERY_STYLE_HIDDEN)
+                ? (bolt + " ") : "";
+            String percentText = mChargeIndicator + NumberFormat.getPercentInstance().format(mLevel / 100f);
             // Setting text actually triggers a layout pass (because the text view is set to
             // wrap_content width and TextView always relayouts for this). Avoid needless
             // relayout if the text didn't actually change.
@@ -342,6 +346,7 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
             mThemedDrawable.setShowPercent(drawPercentInside);
             mCircleDrawable.setShowPercent(drawPercentInside);
         }
+        updatePercentText();
     }
 
     public void updateVisibility() {
