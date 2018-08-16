@@ -95,5 +95,6 @@ public class SystemSettings {
         Settings.System.QQS_SHOW_BRIGHTNESS,
         Settings.System.SHOW_AUTO_BRIGHTNESS_BUTTON,
         Settings.System.BRIGHTNESS_SLIDER_POSITION,
+        Settings.System.LOCKSCREEN_BATTERY_INFO,
     };
 }
