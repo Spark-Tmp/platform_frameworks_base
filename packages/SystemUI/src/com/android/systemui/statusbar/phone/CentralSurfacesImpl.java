@@ -126,6 +126,7 @@ import com.android.internal.logging.UiEventLoggerImpl;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.internal.statusbar.RegisterStatusBarResult;
+import com.android.internal.util.nad.NadUtils;
 import com.android.keyguard.AuthKeyguardMessageArea;
 import com.android.keyguard.FaceAuthApiRequestReason;
 import com.android.keyguard.KeyguardUpdateMonitor;
@@ -511,6 +512,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
 
     private NadSettingsObserver mNadSettingsObserver;
     protected GameSpaceManager mGameSpaceManager;
+    private boolean mShowNavBar;
 
     // expanded notifications
     // the sliding/resizing panel within the notification window
@@ -1196,7 +1198,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
         mHeadsUpManager.addListener(mNotificationPanelViewController.getOnHeadsUpChangedListener());
         mNotificationPanelViewController.setHeadsUpManager(mHeadsUpManager);
 
-        createNavigationBar(result);
+        updateNavigationBar(true);
 
         if (ENABLE_LOCKSCREEN_WALLPAPER && mWallpaperSupported) {
             mLockscreenWallpaper = mLockscreenWallpaperLazy.get();
@@ -1975,14 +1977,38 @@ public class CentralSurfacesImpl extends CoreStartable implements
 
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.FORCE_SHOW_NAVBAR),
+                    false, this, UserHandle.USER_ALL);
         }
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
+            if (uri.equals(Settings.System.getUriFor(Settings.System.FORCE_SHOW_NAVBAR))) {
+                updateNavigationBar(false);
+            }
         }
 
         public void update() {
         }
+    }
+
+    private void updateNavigationBar(boolean init) {
+        boolean showNavBar = NadUtils.deviceSupportNavigationBar(mContext);
+        if (init) {
+            if (showNavBar) {
+                mNavigationBarController.createNavigationBars(true, null);
+            }
+        } else {
+            if (showNavBar != mShowNavBar) {
+                if (showNavBar) {
+                    mNavigationBarController.createNavigationBars(true, null);
+                } else {
+                    mNavigationBarController.removeNavigationBar(mDisplayId);
+                }
+            }
+        }
+        mShowNavBar = showNavBar;
     }
 
     private void maybeEscalateHeadsUp() {
