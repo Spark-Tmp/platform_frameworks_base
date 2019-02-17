@@ -25,9 +25,12 @@ import android.hardware.fingerprint.FingerprintManager;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.view.IWindowManager;
 import android.view.WindowManagerGlobal;
+
+import com.android.internal.statusbar.IStatusBarService;
 
 import com.android.internal.R;
 
@@ -82,6 +85,10 @@ public class NadUtils {
     // Check to see if device supports A/B (seamless) system updates
     public static boolean isABdevice(Context context) {
         return SystemProperties.getBoolean("ro.build.ab_update", false);
+    }
+
+    public static boolean deviceHasFlashlight(Context ctx) {
+        return ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
     }
 
     // Check to see if a package is installed
