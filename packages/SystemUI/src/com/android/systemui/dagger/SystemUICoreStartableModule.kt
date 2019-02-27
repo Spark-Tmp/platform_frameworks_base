@@ -45,6 +45,7 @@ import com.android.systemui.util.NotificationChannels
 import com.android.systemui.util.leak.GarbageMonitor
 import com.android.systemui.volume.VolumeUI
 import com.android.systemui.wmshell.WMShell
+import com.android.systemui.nad.AppPickerServices
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.ClassKey
@@ -208,6 +209,12 @@ abstract class SystemUICoreStartableModule {
     @ClassKey(WMShell::class)
     abstract fun bindWMShell(sysui: WMShell): CoreStartable
 
+    /** Inject into AppPickerServices.  */
+    @Binds
+    @IntoMap
+    @ClassKey(AppPickerServices::class)
+    abstract fun bindAppPickerServices(sysui: AppPickerServices): CoreStartable
+    
     /** Inject into KeyguardLiftController.  */
     @Binds
     @IntoMap

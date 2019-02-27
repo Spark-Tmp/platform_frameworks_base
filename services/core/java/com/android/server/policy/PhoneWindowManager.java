@@ -162,6 +162,7 @@ import android.service.dreams.IDreamManager;
 import android.service.vr.IPersistentVrStateCallbacks;
 import android.speech.RecognizerIntent;
 import android.telecom.TelecomManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.MutableBoolean;
 import android.util.PrintWriterPrinter;
@@ -6567,15 +6568,18 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_HOME:
                         customAppLaunch(mContext,
-                                Settings.System.KEY_HOME_LONG_PRESS_CUSTOM_APP);
+                                Settings.System.KEY_HOME_LONG_PRESS_CUSTOM_APP,
+                                Settings.System.KEY_HOME_LONG_PRESS_CUSTOM_ACTIVITY);
                         break;
                     case KeyEvent.KEYCODE_BACK:
                         customAppLaunch(mContext,
-                                Settings.System.KEY_BACK_LONG_PRESS_CUSTOM_APP);
+                                Settings.System.KEY_BACK_LONG_PRESS_CUSTOM_APP,
+                                Settings.System.KEY_BACK_LONG_PRESS_CUSTOM_ACTIVITY);
                         break;
                     case KeyEvent.KEYCODE_APP_SWITCH:
                         customAppLaunch(mContext,
-                                Settings.System.KEY_APP_SWITCH_LONG_PRESS_CUSTOM_APP);
+                                Settings.System.KEY_APP_SWITCH_LONG_PRESS_CUSTOM_APP,
+                                Settings.System.KEY_APP_SWITCH_LONG_PRESS_CUSTOM_ACTIVITY);
                         break;
                 }
                 break;
@@ -6650,15 +6654,18 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_HOME:
                         customAppLaunch(mContext,
-                                Settings.System.KEY_HOME_DOUBLE_TAP_CUSTOM_APP);
+                                Settings.System.KEY_HOME_DOUBLE_TAP_CUSTOM_APP,
+                                Settings.System.KEY_HOME_DOUBLE_TAP_CUSTOM_ACTIVITY);
                         break;
                     case KeyEvent.KEYCODE_BACK:
                         customAppLaunch(mContext,
-                                Settings.System.KEY_BACK_DOUBLE_TAP_CUSTOM_APP);
+                                Settings.System.KEY_BACK_DOUBLE_TAP_CUSTOM_APP,
+                                Settings.System.KEY_BACK_DOUBLE_TAP_CUSTOM_ACTIVITY);
                         break;
                     case KeyEvent.KEYCODE_APP_SWITCH:
                         customAppLaunch(mContext,
-                                Settings.System.KEY_APP_SWITCH_DOUBLE_TAP_CUSTOM_APP);
+                                Settings.System.KEY_APP_SWITCH_DOUBLE_TAP_CUSTOM_APP,
+                                Settings.System.KEY_APP_SWITCH_DOUBLE_TAP_CUSTOM_ACTIVITY);
                         break;
                 }
                 break;
@@ -6722,13 +6729,23 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
-    private static void customAppLaunch(Context context, String action) {
+    private static void customAppLaunch(Context context, String appName, String appActivity) {
+        Intent intent = null;
+        String packageName = Settings.System.getString(context.getContentResolver(), appName);
+        String activity = Settings.System.getString(context.getContentResolver(), appActivity);
+        boolean launchActivity = activity != null && !TextUtils.equals("NONE", activity);
         try {
-            Intent intent = context.getPackageManager().getLaunchIntentForPackage(
-                    Settings.System.getString(context.getContentResolver(), action));
+            if (launchActivity) {
+                intent = new Intent(Intent.ACTION_MAIN);
+                intent.setClassName(packageName, activity);
+            } else {
+                intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+            }
+            if (intent != null) {
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            }
             context.startActivity(intent);
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
