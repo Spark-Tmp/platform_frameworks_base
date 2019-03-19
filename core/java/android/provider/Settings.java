@@ -5878,7 +5878,7 @@ public final class Settings {
         public static final String KEY_APP_SWITCH_DOUBLE_TAP_ACTION = "key_app_switch_double_tap_action";
 
         /**
-         * Launch custom application when app switch key is double-tapped.
+         * Launch custom application when app switch key is double-tapped
          * @hide
          */
         public static final String KEY_APP_SWITCH_DOUBLE_TAP_CUSTOM_APP = "key_app_switch_double_tap_custom_app";
@@ -5896,6 +5896,12 @@ public final class Settings {
          */
         public static final String KEY_APP_SWITCH_DOUBLE_TAP_CUSTOM_APP_FR_NAME =
                 "key_app_switch_double_tap_custom_app_fr_name";
+                
+        /**
+         * Switch between filters for lockscreen album art
+         * @hide
+         */
+        public static final String LOCKSCREEN_ALBUMART_FILTER = "lockscreen_albumart_filter";
 
         /**
          * Action to perform when the app switch key is long-pressed.
