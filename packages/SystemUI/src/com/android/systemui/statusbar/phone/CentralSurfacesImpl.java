@@ -1991,6 +1991,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
             mSystemSettings.registerContentObserverForUser(Settings.System.FORCE_SHOW_NAVBAR, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.DOUBLE_TAP_SLEEP_LOCKSCREEN, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.DOUBLE_TAP_SLEEP_GESTURE, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.LESS_BORING_HEADS_UP, this, UserHandle.USER_ALL);
         }
 
         @Override
@@ -2005,6 +2006,9 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 case Settings.System.DOUBLE_TAP_SLEEP_GESTURE:
                     updateDoubleTapSbGesture();
                     break;
+                case Settings.System.LESS_BORING_HEADS_UP:
+                    setUseLessBoringHeadsUp();
+                    break;
             }
         }
 
@@ -2013,6 +2017,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 updateDoubleTapSbGesture();
                 updateDoubleTapLsGesture();
                 updateNavigationBar(true);
+                setUseLessBoringHeadsUp();
         });
     }
 
@@ -2056,6 +2061,15 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 if (mNotificationPanelViewController != null) {
                     mNotificationPanelViewController.setLockscreenDoubleTapToSleep(isDoubleTapLockscreenEnabled);
                 }
+            });
+        }
+
+
+        private void setUseLessBoringHeadsUp() {
+            final boolean lessBoringHeadsUp = mSystemSettings.getIntForUser(
+                    Settings.System.LESS_BORING_HEADS_UP, 0, UserHandle.USER_CURRENT) == 1;
+            mMainHandler.post(() -> {
+                mNotificationInterruptStateProvider.setUseLessBoringHeadsUp(lessBoringHeadsUp);
             });
         }
     }
