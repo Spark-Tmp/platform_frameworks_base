@@ -17,6 +17,7 @@
     <string name="global_action_restart_bootloader">Bootloader</string>
     <string name="global_action_restart_ui">SystemUI</string>
 
-    <!-- SystemUI tuner -->
-    <string name="systemui_tuner_navbar_title">Stock navbar</string>
+    <!-- Navbar -->
+    <string name="systemui_tuner_navbar_title">Layout</string>
+    <string name="navigation_bar_format_title">Navbar format</string>
 </resources>
