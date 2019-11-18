@@ -2046,6 +2046,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
             mSystemSettings.registerContentObserverForUser(Settings.System.RETICKER_STATUS, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.QS_TILE_TINT, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.NOTIFICATION_MATERIAL_DISMISS, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.LOCKSCREEN_MEDIA_BLUR, this, UserHandle.USER_ALL);
         }
 
         @Override
@@ -2073,6 +2074,9 @@ public class CentralSurfacesImpl extends CoreStartable implements
                     updateDismissAllVisibility(false);
                     updateDismissAllButton();
                     break;
+                case Settings.System.LOCKSCREEN_MEDIA_BLUR:
+                    setLockScreenMediaBlurLevel();
+                    break;
             }
         }
 
@@ -2085,6 +2089,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 updateDismissAllButton();
                 setUseLessBoringHeadsUp();
                 setRetickerStatus();
+                setLockScreenMediaBlurLevel();
         });
     }
 
@@ -2145,6 +2150,14 @@ public class CentralSurfacesImpl extends CoreStartable implements
                     Settings.System.RETICKER_STATUS, 0, UserHandle.USER_CURRENT) == 1;
             mMainHandler.post(() -> {
                 mNotificationInterruptStateProvider.setUseReticker(reTicker);
+            });
+        }
+
+        private void setLockScreenMediaBlurLevel() {
+            mMainHandler.post(() -> {
+                if (mMediaManager != null) {
+                    mMediaManager.setLockScreenMediaBlurLevel();
+                }
             });
         }
     }
