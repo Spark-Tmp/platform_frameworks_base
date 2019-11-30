@@ -23,4 +23,7 @@
     <dimen name="network_traffic_unit_text_default_size">8sp</dimen>
     <item name="network_traffic_rate_text_default_scale_factor" format="float" type="dimen">1.5</item>
     <item name="network_traffic_line_spacing_multiplier" format="float" type="dimen">0.8</item>
+
+    <!-- Width of the battery icon in the status bar when set to circle style. -->
+    <dimen name="status_bar_battery_icon_circle_width">13.5dp</dimen>
 </resources>
