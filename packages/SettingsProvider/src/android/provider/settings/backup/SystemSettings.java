@@ -97,5 +97,6 @@ public class SystemSettings {
         Settings.System.BRIGHTNESS_SLIDER_POSITION,
         Settings.System.LOCKSCREEN_BATTERY_INFO,
         Settings.System.FULLSCREEN_GESTURES,
+        Settings.System.FLASHLIGHT_ON_CALL,
     };
 }
