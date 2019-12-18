@@ -22,9 +22,11 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.hardware.fingerprint.FingerprintManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemProperties;
+import android.view.IWindowManager;
+import android.view.WindowManagerGlobal;
 
 import com.android.internal.R;
 
@@ -99,5 +101,16 @@ public class NadUtils {
 
     public static boolean isPackageInstalled(Context context, String pkg) {
         return isPackageInstalled(context, pkg, true);
+    }
+
+    // Method to detect navigation bar is in use
+    public static boolean hasNavigationBar(Context context) {
+        boolean hasNavbar = false;
+        IWindowManager wm = WindowManagerGlobal.getWindowManagerService();
+        try {
+            hasNavbar = wm.hasNavigationBar(context.getDisplayId());
+        } catch (RemoteException ex) {
+        }
+        return hasNavbar;
     }
 }
