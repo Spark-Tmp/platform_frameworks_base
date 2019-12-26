@@ -53,6 +53,7 @@ public interface StatusBarFragmentModule {
     String OPERATOR_NAME_FRAME_VIEW = "operator_name_frame_view";
     String START_SIDE_CONTENT = "start_side_content";
     String END_SIDE_CONTENT = "end_side_content";
+    String NAD_LOGO_VIEW = "nad_logo_view";
 
     /** */
     @Provides
@@ -163,4 +164,12 @@ public interface StatusBarFragmentModule {
     /** */
     @Multibinds
     Set<StatusBarBoundsProvider.BoundsChangeListener> boundsChangeListeners();
+
+    /** */
+    @Provides
+    @Named(NAD_LOGO_VIEW)
+    @StatusBarFragmentScope
+    static View provideNadLogo(@RootView PhoneStatusBarView view) {
+        return view.findViewById(R.id.status_bar_logo);
+    }
 }

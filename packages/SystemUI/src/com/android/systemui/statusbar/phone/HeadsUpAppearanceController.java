@@ -17,6 +17,7 @@
 package com.android.systemui.statusbar.phone;
 
 import static com.android.systemui.statusbar.phone.fragment.dagger.StatusBarFragmentModule.OPERATOR_NAME_FRAME_VIEW;
+import static com.android.systemui.statusbar.phone.fragment.dagger.StatusBarFragmentModule.NAD_LOGO_VIEW;
 
 import android.content.Context;
 import android.content.ContentResolver;
@@ -66,7 +67,6 @@ public class HeadsUpAppearanceController extends ViewController<HeadsUpStatusBar
     private final NotificationIconAreaController mNotificationIconAreaController;
     private final HeadsUpManagerPhone mHeadsUpManager;
     private final NotificationStackScrollLayoutController mStackScrollerController;
-
     private final DarkIconDispatcher mDarkIconDispatcher;
     private final NotificationPanelViewController mNotificationPanelViewController;
     private final Consumer<ExpandableNotificationRow>
@@ -78,6 +78,7 @@ public class HeadsUpAppearanceController extends ViewController<HeadsUpStatusBar
     private final NotificationWakeUpCoordinator mWakeUpCoordinator;
 
     private final View mClockView;
+    private final View mNadLogoView;
     private final Optional<View> mOperatorNameViewOptional;
 
     @VisibleForTesting
@@ -111,6 +112,7 @@ public class HeadsUpAppearanceController extends ViewController<HeadsUpStatusBar
             NotificationPanelViewController notificationPanelViewController,
             HeadsUpStatusBarView headsUpStatusBarView,
             Clock clockView,
+            @Named(NAD_LOGO_VIEW) View nadLogoView,
             @Named(OPERATOR_NAME_FRAME_VIEW) Optional<View> operatorNameViewOptional) {
         super(headsUpStatusBarView);
         mNotificationIconAreaController = notificationIconAreaController;
@@ -128,6 +130,7 @@ public class HeadsUpAppearanceController extends ViewController<HeadsUpStatusBar
         mNotificationPanelViewController = notificationPanelViewController;
         mStackScrollerController.setHeadsUpAppearanceController(this);
         mClockView = clockView;
+        mNadLogoView = nadLogoView;
         mOperatorNameViewOptional = operatorNameViewOptional;
         mDarkIconDispatcher = darkIconDispatcher;
 
@@ -225,6 +228,9 @@ public class HeadsUpAppearanceController extends ViewController<HeadsUpStatusBar
                 show(mView);
                 hide(mClockView, View.INVISIBLE);
                 mOperatorNameViewOptional.ifPresent(view -> hide(view, View.INVISIBLE));
+                if (mNadLogoView.getVisibility() != View.GONE) {
+                    hide(mNadLogoView, View.INVISIBLE);
+                }
             } else {
                 if (clockStyle == 0 && isClockVisible) {
                     show(mClockView);
@@ -234,6 +240,9 @@ public class HeadsUpAppearanceController extends ViewController<HeadsUpStatusBar
                 hide(mView, View.GONE, () -> {
                     updateParentClipping(true /* shouldClip */);
                 });
+                if (mNadLogoView.getVisibility() != View.GONE) {
+                    show(mNadLogoView);
+                }
             }
             // Show the status bar icons when the view gets shown / hidden
             if (mStatusBarStateController.getState() != StatusBarState.SHADE) {
