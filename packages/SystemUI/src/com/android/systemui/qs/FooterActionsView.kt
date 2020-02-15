@@ -36,7 +36,7 @@ import com.android.systemui.statusbar.phone.MultiUserSwitch
 /**
  * Quick Settings bottom buttons placed in footer (aka utility bar) - always visible in expanded QS,
  * in split shade mode visible also in collapsed state. May contain up to 5 buttons: settings,
- * edit tiles, power off and conditionally: user switch and tuner
+ * edit tiles, power off and conditionally: user switch
  */
 // TODO(b/242040009): Remove this file.
 class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(context, attrs) {
