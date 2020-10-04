@@ -217,5 +217,6 @@ public class SecureSettings {
         Settings.Secure.BLUETOOTH_LE_BROADCAST_CODE,
         Settings.Secure.BLUETOOTH_LE_BROADCAST_APP_SOURCE_NAME,
         Settings.Secure.VOLUME_LINK_NOTIFICATION,
+        Settings.Secure.GESTURE_NAVBAR_LENGTH_MODE,
     };
 }
