@@ -6077,6 +6077,12 @@ public final class Settings {
         public static final String VOLUME_DIALOG_FORCE_SHOW_SETTINGS = "volume_dialog_force_show_settings";
 
         /**
+         * Whether to show material Dismiss All Button for notifications
+         * @hide
+         */
+        public static final String NOTIFICATION_MATERIAL_DISMISS = "notification_material_dismiss";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
