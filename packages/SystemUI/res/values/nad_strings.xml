@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-     Copyright (C) 2019-2022 Nusantara Project
+<!-- Copyright (C) 2019-2022 Nusantara Project
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
      You may obtain a copy of the License at
@@ -11,15 +10,10 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<resources>
-    <!-- Whether to cancel fingerprint operation if not idle -->
-    <java-symbol type="bool" name="config_fpCancelIfNotIdle" />
-
-    <!-- Advanced reboot -->
-    <java-symbol type="string" name="reboot_to_recovery_title" />
-    <java-symbol type="string" name="reboot_to_recovery_message" />
-    <java-symbol type="string" name="reboot_to_bootloader_title" />
-    <java-symbol type="string" name="reboot_to_bootloader_message" />
-    <java-symbol type="string" name="reboot_title" />
-    <java-symbol type="string" name="reboot_message" />
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Advanced Reboot -->
+    <string name="global_action_restart_advanced">Advanced</string>
+    <string name="global_action_restart_recovery">Recovery</string>
+    <string name="global_action_restart_bootloader">Bootloader</string>
+    <string name="global_action_restart_ui">SystemUI</string>
 </resources>
