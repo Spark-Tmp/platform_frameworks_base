@@ -47,4 +47,9 @@
     <string name="screen_pinning_description_recents_invisible_accessible_custom">This keeps it in view until you unpin. Touch &amp; hold Back to unpin.</string>
     <string name="screen_pinning_toast_custom">To unpin this screen, touch &amp; hold Back button</string>
     <string name="screen_pinning_toast_recents_invisible_custom">To unpin this screen, touch &amp; hold Back button</string>
+
+    <!-- Label for UI element which allows deleting the screenshot [CHAR LIMIT=30] -->
+    <string name="screenshot_delete_label">Delete</string>
+    <!-- Content description indicating that tapping the element will allow deleting the screenshot [CHAR LIMIT=NONE] -->
+    <string name="screenshot_delete_description">Delete screenshot</string>
 </resources>
