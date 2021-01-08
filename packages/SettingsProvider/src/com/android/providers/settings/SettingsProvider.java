@@ -4413,8 +4413,7 @@ public class SettingsProvider extends ContentProvider {
                             Secure.VOLUME_HUSH_GESTURE);
                     if (currentSetting.isNull()) {
                         secureSettings.insertSettingOverrideableByRestoreLocked(
-                                Secure.VOLUME_HUSH_GESTURE,
-                                Integer.toString(Secure.VOLUME_HUSH_VIBRATE),
+                                Secure.VOLUME_HUSH_GESTURE, Secure.NUSANTARA_VOLUME_HUSH_VIBRATE,
                                 null, true, SettingsState.SYSTEM_PACKAGE_NAME);
                     }
 
