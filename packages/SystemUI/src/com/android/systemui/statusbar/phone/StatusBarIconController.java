@@ -16,6 +16,7 @@ package com.android.systemui.statusbar.phone;
 
 import static com.android.systemui.statusbar.phone.StatusBarIconHolder.TYPE_ICON;
 import static com.android.systemui.statusbar.phone.StatusBarIconHolder.TYPE_MOBILE;
+import static com.android.systemui.statusbar.phone.StatusBarIconHolder.TYPE_NETWORK_TRAFFIC;
 import static com.android.systemui.statusbar.phone.StatusBarIconHolder.TYPE_WIFI;
 
 import android.annotation.Nullable;
@@ -41,6 +42,7 @@ import com.android.systemui.plugins.DarkIconDispatcher.DarkReceiver;
 import com.android.systemui.statusbar.BaseStatusBarWifiView;
 import com.android.systemui.statusbar.StatusBarIconView;
 import com.android.systemui.statusbar.StatusBarMobileView;
+import com.android.systemui.statusbar.StatusBarNetworkTrafficView;
 import com.android.systemui.statusbar.StatusBarWifiView;
 import com.android.systemui.statusbar.StatusIconDisplayable;
 import com.android.systemui.statusbar.connectivity.ui.MobileContextProvider;
@@ -50,6 +52,7 @@ import com.android.systemui.statusbar.phone.StatusBarSignalPolicy.WifiIconState;
 import com.android.systemui.statusbar.pipeline.StatusBarPipelineFlags;
 import com.android.systemui.statusbar.pipeline.wifi.ui.view.ModernStatusBarWifiView;
 import com.android.systemui.statusbar.pipeline.wifi.ui.viewmodel.WifiViewModel;
+import com.android.systemui.statusbar.policy.NetworkTrafficMonitor.NetworkTrafficState;
 import com.android.systemui.util.Assert;
 
 import java.util.ArrayList;
@@ -93,6 +96,11 @@ public interface StatusBarIconController {
      */
     void setNoCallingIcons(String slot, List<CallIndicatorIconState> states);
 
+    /**
+     * Network traffic indicator icons.
+     */
+    void setNetworkTrafficIcon(String slot, NetworkTrafficState state);
+    
     public void setIconVisibility(String slot, boolean b);
 
     /**
@@ -394,6 +402,9 @@ public interface StatusBarIconController {
 
                 case TYPE_MOBILE:
                     return addMobileIcon(index, slot, holder.getMobileState());
+
+                case TYPE_NETWORK_TRAFFIC:
+                    return addNetworkTrafficIcon(index, slot, holder.getNetworkTrafficState());
             }
 
             return null;
@@ -443,6 +454,13 @@ public interface StatusBarIconController {
             return view;
         }
 
+        protected StatusBarNetworkTrafficView addNetworkTrafficIcon(int index, String slot, NetworkTrafficState state) {
+            StatusBarNetworkTrafficView view = onCreateStatusBarNetworkTrafficView(slot);
+            view.applyNetworkTrafficState(state);
+            mGroup.addView(view, index, onCreateLayoutParams());
+            return view;
+        }
+
         private StatusBarIconView onCreateStatusBarIconView(String slot, boolean blocked) {
             return new StatusBarIconView(mContext, slot, null, blocked);
         }
@@ -462,6 +480,10 @@ public interface StatusBarIconController {
             StatusBarMobileView view = StatusBarMobileView
                     .fromContext(mobileContext, slot);
             return view;
+        }
+
+        private StatusBarNetworkTrafficView onCreateStatusBarNetworkTrafficView(String slot) {
+            return StatusBarNetworkTrafficView.fromContext(mContext, slot);
         }
 
         protected LinearLayout.LayoutParams onCreateLayoutParams() {
@@ -513,14 +535,15 @@ public interface StatusBarIconController {
             switch (holder.getType()) {
                 case TYPE_ICON:
                     onSetIcon(viewIndex, holder.getIcon());
-                    return;
+                    break;
                 case TYPE_WIFI:
                     onSetWifiIcon(viewIndex, holder.getWifiState());
-                    return;
+                    break;
                 case TYPE_MOBILE:
                     onSetMobileIcon(viewIndex, holder.getMobileState());
-                default:
                     break;
+                case TYPE_NETWORK_TRAFFIC:
+                    onSetNetworkTrafficIcon(viewIndex, holder.getNetworkTrafficState());
             }
         }
 
@@ -551,6 +574,13 @@ public interface StatusBarIconController {
                 Context mobileContext = mMobileContextProvider
                         .getMobileContextForSub(state.subId, mContext);
                 mDemoStatusIcons.updateMobileState(state, mobileContext);
+            }
+        }
+
+        public void onSetNetworkTrafficIcon(int viewIndex, NetworkTrafficState state) {
+            StatusBarNetworkTrafficView view = (StatusBarNetworkTrafficView) mGroup.getChildAt(viewIndex);
+            if (view != null) {
+                view.applyNetworkTrafficState(state);
             }
         }
 
