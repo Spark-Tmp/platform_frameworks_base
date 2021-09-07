@@ -16,6 +16,9 @@
 
 package com.android.internal.util.nad;
 
+import static android.view.DisplayCutout.BOUNDS_POSITION_LEFT;
+import static android.view.DisplayCutout.BOUNDS_POSITION_RIGHT;
+
 import android.Manifest;
 import android.content.Context;
 import android.content.om.IOverlayManager;
@@ -24,6 +27,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.PowerManager;
 import android.os.RemoteException;
@@ -33,9 +38,12 @@ import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.view.DisplayCutout;
+import android.view.DisplayInfo;
 import android.view.IWindowManager;
 import android.view.WindowManagerGlobal;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.android.internal.statusbar.IStatusBarService;
 
@@ -45,6 +53,12 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class NadUtils {
+
+    private static final String TAG = "NadUtils";
+
+    private static final boolean DEBUG = false;
+
+    private static final int NO_CUTOUT = -1;
 
     private static OverlayManager sOverlayService;
 
@@ -208,11 +222,38 @@ public class NadUtils {
                 || NadUtils.isThemeEnabled("com.android.internal.systemui.navbar.gestural_extra_wide_back");
     }
 
-	    // Check if device has a notch
+    // Check if device has a notch
     public static boolean hasNotch(Context context) {
         String displayCutout = context.getResources().getString(R.string.config_mainBuiltInDisplayCutout);
         boolean maskDisplayCutout = context.getResources().getBoolean(R.bool.config_maskMainBuiltInDisplayCutout);
         boolean displayCutoutExists = (!TextUtils.isEmpty(displayCutout) && !maskDisplayCutout);
         return displayCutoutExists;
+    }
+
+    public static int getCutoutType(Context context) {
+        final DisplayInfo info = new DisplayInfo();
+        context.getDisplay().getDisplayInfo(info);
+        final DisplayCutout cutout = info.displayCutout;
+        if (cutout == null) {
+            if (DEBUG) Log.v(TAG, "noCutout");
+            return NO_CUTOUT;
+        }
+        final Point displaySize = new Point();
+        context.getDisplay().getRealSize(displaySize);
+        List<Rect> cutOutBounds = cutout.getBoundingRects();
+        if (cutOutBounds != null) {
+            for (Rect cutOutRect : cutOutBounds) {
+                if (DEBUG) Log.v(TAG, "cutout left= " + cutOutRect.left);
+                if (DEBUG) Log.v(TAG, "cutout right= " + cutOutRect.right);
+                if (cutOutRect.left == 0 && cutOutRect.right > 0) {  //cutout is located on top left
+                    if (DEBUG) Log.v(TAG, "cutout position= " + BOUNDS_POSITION_LEFT);
+                    return BOUNDS_POSITION_LEFT;
+                } else if (cutOutRect.right == displaySize.x && (displaySize.x - cutOutRect.left) > 0) {  //cutout is located on top right
+                    if (DEBUG) Log.v(TAG, "cutout position= " + BOUNDS_POSITION_RIGHT);
+                    return BOUNDS_POSITION_RIGHT;
+                }
+            }
+        }
+        return NO_CUTOUT;
     }
 }
