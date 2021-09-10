@@ -5552,6 +5552,12 @@ public final class Settings {
         public static final String QS_FOOTER_TEXT_STRING = "qs_footer_text_string";
 
         /**
+        * Whether to show data usage in qs footer
+        * @hide
+        */
+        public static final String QS_FOOTER_DATA_USAGE = "qs_footer_data_usage";
+
+        /**
          * Whether Proximity on Wake is Enabled or not
          * @hide
          */
