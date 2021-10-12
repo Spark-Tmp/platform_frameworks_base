@@ -99,7 +99,7 @@ open class QSTileViewImpl @JvmOverloads constructor(
     ) == 1
 
     private val colorActive = Utils.getColorAttrDefaultColor(context,
-            com.android.internal.R.attr.colorAccentPrimary)
+            android.R.attr.colorAccent)
     private val colorInactive = Utils.getColorAttrDefaultColor(context, R.attr.offStateColor)
     private val colorUnavailable = Utils.applyAlpha(UNAVAILABLE_ALPHA, colorInactive)
 
