@@ -237,5 +237,6 @@ public class SystemSettingsValidators {
                         return new InclusiveIntegerRangeValidator(0, 1000).validate(item);
                     }
                 });
+        VALIDATORS.put(System.INCALL_FEEDBACK_VIBRATE, BOOLEAN_VALIDATOR);
     }
 }

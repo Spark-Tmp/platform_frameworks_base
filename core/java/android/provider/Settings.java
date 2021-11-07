@@ -6027,24 +6027,11 @@ public final class Settings {
         @Readable
         public static final String FLASHLIGHT_ON_CALL_RATE = "flashlight_on_call_rate";
 
-
         /**
-         * Whether the phone vibrates on call connect
+         * Whether to enable or disable vibration during calls
          * @hide
          */
-        public static final String VIBRATE_ON_CONNECT = "vibrate_on_connect";
-
-        /**
-         * Whether the phone vibrates on call waiting
-         * @hide
-         */
-        public static final String VIBRATE_ON_CALLWAITING = "vibrate_on_callwaiting";
-
-        /**
-         * Whether the phone vibrates on disconnect
-         * @hide
-         */
-        public static final String VIBRATE_ON_DISCONNECT = "vibrate_on_disconnect";
+        public static final String INCALL_FEEDBACK_VIBRATE = "incall_feeedback_vibrate";
 
         /**
         /** Volume rocker wake
@@ -6306,9 +6293,6 @@ public final class Settings {
             PRIVATE_SETTINGS.add(FLASHLIGHT_ON_CALL);
             PRIVATE_SETTINGS.add(FLASHLIGHT_ON_CALL_IGNORE_DND);
             PRIVATE_SETTINGS.add(FLASHLIGHT_ON_CALL_RATE);
-            PRIVATE_SETTINGS.add(VIBRATE_ON_CONNECT);
-            PRIVATE_SETTINGS.add(VIBRATE_ON_CALLWAITING);
-            PRIVATE_SETTINGS.add(VIBRATE_ON_DISCONNECT);
             PRIVATE_SETTINGS.add(VOLUME_ROCKER_WAKE);
         }
 
