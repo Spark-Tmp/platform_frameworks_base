@@ -96,5 +96,6 @@ public class SystemSettings {
         Settings.System.SHOW_AUTO_BRIGHTNESS_BUTTON,
         Settings.System.BRIGHTNESS_SLIDER_POSITION,
         Settings.System.LOCKSCREEN_BATTERY_INFO,
+        Settings.System.FULLSCREEN_GESTURES,
     };
 }
