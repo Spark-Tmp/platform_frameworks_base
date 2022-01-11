@@ -221,5 +221,6 @@ public class SecureSettings {
         Settings.Secure.DOZE_ON_CHARGE,
         Settings.Secure.POWER_MENU_HIDE_ON_SECURE,
         Settings.Secure.DISABLE_SECURE_TILES_ON_LOCKSCREEN,
+        Settings.Secure.SECURE_LOCKSCREEN_QS_DISABLED,
     };
 }
