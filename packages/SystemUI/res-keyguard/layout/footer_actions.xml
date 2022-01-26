@@ -19,6 +19,7 @@
 <!-- TODO(b/242040009): Clean up this file. -->
 <com.android.systemui.qs.FooterActionsView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:systemui="http://schemas.android.com/apk/res-auto"
     xmlns:androidprv="http://schemas.android.com/apk/prv/res/android"
     android:layout_width="match_parent"
     android:layout_height="@dimen/footer_actions_height"
@@ -29,6 +30,22 @@
     android:gravity="center_vertical|end"
     android:layout_gravity="bottom"
 >
+
+    <com.android.systemui.qs.CustomCarrierText
+        android:id="@+id/carrier_label_footer"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:layout_gravity="start|center_vertical"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:textDirection="locale"
+        android:textAppearance="@style/TextAppearance.StatusBar.Clock"
+        android:textColor="?android:attr/textColorPrimary"
+        android:singleLine="true"
+        systemui:showMissingSim="true"
+        systemui:showAirplaneMode="true" />
 
     <LinearLayout
         android:id="@+id/security_footers_container"

@@ -19,6 +19,8 @@
     android:id="@+id/quick_qs_status_icons"
     android:layout_width="match_parent"
     android:layout_height="@*android:dimen/quick_qs_offset_height"
+    android:layout_marginTop="@dimen/header_margin_top"
+    android:gravity="center_vertical"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:minHeight="@dimen/qs_header_row_min_height"
@@ -28,47 +30,120 @@
 
     <LinearLayout
         android:id="@+id/clock_container"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:layout_gravity="center_vertical|start"
-        android:gravity="center_vertical|start"
-        >
-
-        <com.android.systemui.statusbar.policy.Clock
-            android:id="@+id/clock"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:minHeight="@dimen/qs_header_row_min_height"
-            android:gravity="center_vertical|start"
-            android:paddingStart="@dimen/status_bar_left_clock_starting_padding"
-            android:paddingEnd="@dimen/status_bar_left_clock_end_padding"
-            android:singleLine="true"
-            android:textAppearance="@style/TextAppearance.QS.Status" />
-
-        <com.android.systemui.statusbar.policy.VariableDateView
-            android:id="@+id/date_clock"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginStart="@dimen/status_bar_left_clock_end_padding"
-            android:gravity="center_vertical|start"
-            android:singleLine="true"
-            android:textAppearance="@style/TextAppearance.QS.Status"
-            systemui:longDatePattern="@string/abbrev_wday_month_day_no_year_alarm"
-            systemui:shortDatePattern="@string/abbrev_month_day_no_year"
-        />
-    </LinearLayout>
-
-    <include layout="@layout/qs_carrier_group"
-        android:id="@+id/carrier_group"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:minHeight="@dimen/qs_header_row_min_height"
-        android:minWidth="48dp"
-        android:layout_marginStart="8dp"
-        android:layout_gravity="end|center_vertical"
-        android:focusable="false"/>
+        android:layout_weight="1.0"
+        android:layout_marginEnd="@dimen/qs_tile_padding"
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical|start"
+        android:gravity="center_vertical|start" >
+        	
+        <LinearLayout 
+            android:id="@+id/jr_base_container"
+            android:gravity="start|center"
+            android:layout_gravity="start|center"
+            android:orientation="horizontal"
+            android:layout_marginEnd="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <AnalogClock
+                android:id="@+id/jr_analog_clock"
+                android:gravity="center"
+                android:padding="4dp"
+                android:dial="@drawable/jr_dial"
+                android:hand_hour="@drawable/jr_hour"
+                android:hand_minute="@drawable/jr_minute"
+                android:dialTint="?android:attr/textColorPrimary"
+                android:hand_hourTint="?android:attr/textColorPrimary"
+                android:hand_minuteTint="?android:attr/textColorPrimary"
+                android:layout_marginStart="15dp"
+                android:layout_gravity="center"
+                android:layout_width="20dp"
+                android:layout_height="20dp" />
+
+            <LinearLayout
+                android:id="@+id/jr_clock_container"
+                android:gravity="start|center"
+                android:layout_gravity="start|center"
+                android:orientation="vertical"
+                android:paddingEnd="4dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:layout_marginStart="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextClock 
+                    android:textAppearance="@style/TextAppearance.StatusBar.Clock"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textStyle="bold"
+                    android:gravity="start|center"
+                    android:layout_gravity="start|center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:format12Hour="h:mm a"
+                    android:format24Hour="kk:mm" />
+
+                <TextClock 
+                    android:textDirection="locale"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit="1"
+                    android:singleLine="true"
+                    android:textAppearance="@style/TextAppearance.QS.TileLabel.Secondary"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:gravity="start|center"
+                    android:layout_gravity="start|center"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:format24Hour="EEE, dd MMMM"
+                    android:format12Hour="EEE, MMMM dd" />
+                
+              </LinearLayout>
+        	
+            </LinearLayout>
+
+            <TextClock
+                android:id="@+id/jr_clock"
+                android:textAppearance="@style/TextAppearance.StatusBar.Clock"
+                android:textColor="?android:attr/colorPrimary"
+                android:textStyle="normal"
+                android:gravity="start|center"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:background="@drawable/qs_clock_bg"
+                android:backgroundTint="?android:colorAccent"
+                android:layout_gravity="start|center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:format12Hour="h:mm a"
+                android:format24Hour="kk:mm" />
+                
+        <LinearLayout 
+            android:id="@+id/jr_date_container"
+            android:gravity="start|center"
+            android:layout_gravity="start|center"
+            android:orientation="horizontal" 
+            android:paddingTop="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextClock 
+                android:textAppearance="@style/TextAppearance.StatusBar.Clock"
+                android:gravity="start|center"
+                android:textColor="?android:textColorPrimary"
+                android:layout_gravity="start|center"
+                android:singleLine="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:format24Hour="EEEE, dd MMM"
+                android:format12Hour="EEEE, MMM dd" />
+                
+          </LinearLayout>
+        
+    </LinearLayout>
 
     <View
         android:id="@+id/separator"
@@ -80,32 +155,33 @@
         android:visibility="gone"
         />
 
-    <FrameLayout
-        android:id="@+id/rightLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:gravity="end"
-        >
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:id="@+id/rightLayout"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
         android:layout_gravity="center_vertical|end"
+        android:layout_marginBottom="3dp"
+        android:gravity="center_vertical|end"
         >
-        <com.android.systemui.statusbar.phone.StatusIconContainer
-            android:id="@+id/statusIcons"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:paddingEnd="@dimen/signal_cluster_battery_padding" />
 
         <com.android.systemui.battery.BatteryMeterView
             android:id="@+id/batteryRemainingIcon"
-            android:layout_height="match_parent"
-            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_width="wrap_content"
             android:layout_weight="1"
+            android:layout_gravity="end|center_vertical"
             systemui:textAppearance="@style/TextAppearance.QS.Status"
+            android:paddingEnd="2dp" />
+            
+        <com.android.systemui.statusbar.phone.StatusIconContainer
+            android:id="@+id/statusIcons"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="end|center_vertical"
             android:paddingEnd="2dp" />
 
     </LinearLayout>
-    </FrameLayout>
 
 </LinearLayout>

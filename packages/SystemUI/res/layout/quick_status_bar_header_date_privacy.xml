@@ -19,34 +19,23 @@
     xmlns:systemui="http://schemas.android.com/apk/res-auto"
     android:id="@+id/quick_status_bar_date_privacy"
     android:layout_width="match_parent"
-    android:layout_height="@*android:dimen/quick_qs_offset_height"
+    android:layout_height="wrap_content"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:gravity="center"
+    android:gravity="top"
     android:layout_gravity="top"
     android:orientation="horizontal"
     android:clickable="true"
-    android:minHeight="48dp">
+    android:minHeight="40dp">
 
     <FrameLayout
         android:id="@+id/date_container"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:minHeight="48dp"
+        android:minHeight="40dp"
         android:layout_weight="1"
         android:gravity="center_vertical|start" >
-
-        <com.android.systemui.statusbar.policy.VariableDateView
-            android:id="@+id/date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start|center_vertical"
-            android:gravity="center_vertical"
-            android:singleLine="true"
-            android:textAppearance="@style/TextAppearance.QS.Status"
-            systemui:longDatePattern="@string/abbrev_wday_month_day_no_year_alarm"
-            systemui:shortDatePattern="@string/abbrev_month_day_no_year"
-        />
+        	
     </FrameLayout>
 
     <!-- We want this to be centered (to align with notches). In order to do that, the following
@@ -64,7 +53,7 @@
         android:id="@+id/privacy_container"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:minHeight="48dp"
+        android:minHeight="40dp"
         android:layout_weight="1"
         android:gravity="center_vertical|end" >
 

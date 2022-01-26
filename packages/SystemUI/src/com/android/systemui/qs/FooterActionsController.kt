@@ -29,6 +29,7 @@ import com.android.internal.jank.InteractionJankMonitor
 import com.android.internal.logging.MetricsLogger
 import com.android.internal.logging.UiEventLogger
 import com.android.internal.logging.nano.MetricsProto
+import com.android.keyguard.CarrierTextManager
 import com.android.keyguard.KeyguardUpdateMonitor
 import com.android.systemui.R
 import com.android.systemui.animation.ActivityLaunchAnimator
@@ -75,6 +76,7 @@ internal class FooterActionsController @Inject constructor(
     private val globalSetting: GlobalSettings,
     private val handler: Handler,
     private val configurationController: ConfigurationController,
+    private val carrierTextManagerBuilder: CarrierTextManager.Builder
 ) : ViewController<FooterActionsView>(view) {
 
     private var globalActionsDialog: GlobalActionsDialogLite? = null
@@ -88,6 +90,20 @@ internal class FooterActionsController @Inject constructor(
         // so that it doesn't overlap with the notifications panel.
         TouchAnimator.Builder().addFloat(mView, "alpha", 0f, 1f).setStartDelay(0.9f).build()
     }
+
+    private val carrierTextCallback = object: CarrierTextManager.CarrierTextCallback {
+                override fun updateCarrierInfo(info: CarrierTextManager.CarrierTextCallbackInfo) {
+                    customCarrierText.setText(info.carrierText)
+                }
+
+                override fun startedGoingToSleep() {
+                    customCarrierText.setSelected(false)
+                }
+
+                override fun finishedWakingUp() {
+                    customCarrierText.setSelected(true)
+                }
+            }
 
     private val splitShadeAnimator by lazy {
         // The Actions footer view has its own background which is the same color as the qs panel's
@@ -120,6 +136,11 @@ internal class FooterActionsController @Inject constructor(
     private val settingsButtonContainer: View = view.findViewById(R.id.settings_button_container)
     private val securityFootersContainer: ViewGroup? =
         view.findViewById(R.id.security_footers_container)
+    private val customCarrierText: CustomCarrierText = view.findViewById(R.id.carrier_label_footer)
+    private val carrierTextManager = carrierTextManagerBuilder
+        .setShowAirplaneMode(true)
+        .setShowMissingSim(true)
+        .build()
     private val powerMenuLite: View = view.findViewById(R.id.pm_lite)
     private val multiUserSwitchController = multiUserSwitchControllerFactory.create(view)
 
@@ -195,6 +216,7 @@ internal class FooterActionsController @Inject constructor(
 
     @VisibleForTesting
     public override fun onViewAttached() {
+        carrierTextManager.setListening(carrierTextCallback)
         globalActionsDialog = globalActionsDialogProvider.get()
         if (showPMLiteButton) {
             powerMenuLite.visibility = View.VISIBLE
@@ -228,7 +250,7 @@ internal class FooterActionsController @Inject constructor(
         fgsManagerFooterController.setOnVisibilityChangedListener(visibilityListener)
 
         configurationController.addCallback(configurationListener)
-
+        carrierTextManager.setListening(null)
         updateResources()
         updateView()
     }
