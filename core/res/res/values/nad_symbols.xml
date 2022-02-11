@@ -87,4 +87,7 @@
     <!-- Hide IME space -->
     <java-symbol type="dimen" name="navigation_bar_frame_height_hide_ime" />
     <java-symbol type="dimen" name="navigation_bar_frame_height_landscape_hide_ime" />
+
+    <!-- Face unlock -->
+    <string name="face_unlock_disabled_idle">Face unlock disabled due to inactivity</string>
 </resources>
