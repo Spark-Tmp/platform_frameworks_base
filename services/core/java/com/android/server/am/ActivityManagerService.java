@@ -1555,7 +1555,7 @@ public class ActivityManagerService extends IActivityManager.Stub
     @GuardedBy("mProcLock")
     private ParcelFileDescriptor[] mLifeMonitorFds;
 
-    final SwipeToScreenshotObserver mSwipeToScreenshotObserver;
+    private final SwipeToScreenshotObserver mSwipeToScreenshotObserver;
     private boolean mIsSwipeToScreenshotEnabled;
 
     static final HostingRecord sNullHostingRecord =
@@ -2480,7 +2480,7 @@ public class ActivityManagerService extends IActivityManager.Stub
         mInternal = new LocalService();
         mPendingStartActivityUids = new PendingStartActivityUids();
         mTraceErrorLogger = new TraceErrorLogger();
-        mSwipeToScreenshotObserver = new SwipeToScreenshotObserver(mHandler, mContext);
+        mSwipeToScreenshotObserver = new SwipeToScreenshotObserver();
         mComponentAliasResolver = new ComponentAliasResolver(this);
     }
 
@@ -18525,27 +18525,26 @@ public class ActivityManagerService extends IActivityManager.Stub
         }
     }
 
-    private class SwipeToScreenshotObserver extends ContentObserver {
+    private final class SwipeToScreenshotObserver extends ContentObserver {
 
-        private final Context mContext;
-
-        public SwipeToScreenshotObserver(Handler handler, Context context) {
-            super(handler);
-            mContext = context;
+        SwipeToScreenshotObserver() {
+            super(mHandler);
         }
 
-        public void registerObserver() {
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.THREE_FINGER_GESTURE),
-                    false, this, UserHandle.USER_ALL);
+        void registerObserver() {
             update();
+            mContext.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.THREE_FINGER_GESTURE),
+                false, this, UserHandle.USER_ALL);
         }
 
         private void update() {
-            mIsSwipeToScreenshotEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                    Settings.System.THREE_FINGER_GESTURE, 0, UserHandle.USER_CURRENT) == 1;
+            mIsSwipeToScreenshotEnabled = Settings.System.getIntForUser(
+                mContext.getContentResolver(), Settings.System.THREE_FINGER_GESTURE,
+                0, UserHandle.USER_CURRENT) == 1;
         }
 
+        @Override
         public void onChange(boolean selfChange) {
             update();
         }
@@ -18554,7 +18553,8 @@ public class ActivityManagerService extends IActivityManager.Stub
     @Override
     public boolean isSwipeToScreenshotGestureActive() {
         synchronized (this) {
-            return mIsSwipeToScreenshotEnabled && SystemProperties.getBoolean("sys.android.screenshot", false);
+            return mIsSwipeToScreenshotEnabled &&
+                SystemProperties.getBoolean("sys.android.screenshot", false);
         }
     }
 }
