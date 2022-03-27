@@ -20,11 +20,17 @@ import static com.android.systemui.media.dagger.MediaModule.QUICK_QS_PANEL;
 import static com.android.systemui.qs.dagger.QSFragmentModule.QS_USING_COLLAPSED_LANDSCAPE_MEDIA;
 import static com.android.systemui.qs.dagger.QSFragmentModule.QS_USING_MEDIA_PLAYER;
 
+import android.annotation.NonNull;
+import android.os.Handler;
+import android.os.UserHandle;
+import android.provider.Settings;
+
 import androidx.annotation.VisibleForTesting;
 
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.UiEventLogger;
 import com.android.systemui.R;
+import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.dump.DumpManager;
 import com.android.systemui.media.MediaHierarchyManager;
 import com.android.systemui.media.MediaHost;
@@ -35,6 +41,7 @@ import com.android.systemui.qs.logging.QSLogger;
 import com.android.systemui.util.leak.RotationUtils;
 import com.android.systemui.settings.brightness.BrightnessMirrorHandler;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+import com.android.systemui.util.settings.SystemSettings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +59,8 @@ public class QuickQSPanelController extends QSPanelControllerBase<QuickQSPanel> 
     private final QuickQSBrightnessController mBrightnessController;
     private final BrightnessMirrorHandler mBrightnessMirrorHandler;
 
+    private boolean mForceShowSlider = false;
+
     @Inject
     QuickQSPanelController(QuickQSPanel view, QSTileHost qsTileHost,
             QSCustomizerController qsCustomizerController,
@@ -61,10 +70,13 @@ public class QuickQSPanelController extends QSPanelControllerBase<QuickQSPanel> 
                     Provider<Boolean> usingCollapsedLandscapeMediaProvider,
             MetricsLogger metricsLogger, UiEventLogger uiEventLogger, QSLogger qsLogger,
             DumpManager dumpManager,
-            QuickQSBrightnessController quickQSBrightnessController
+            QuickQSBrightnessController quickQSBrightnessController,
+            @Main Handler mainHandler,
+            SystemSettings systemSettings
+            
     ) {
         super(view, qsTileHost, qsCustomizerController, usingMediaPlayer, mediaHost, metricsLogger,
-                uiEventLogger, qsLogger, dumpManager);
+                uiEventLogger, qsLogger, dumpManager, mainHandler, systemSettings);
         mUsingCollapsedLandscapeMediaProvider = usingCollapsedLandscapeMediaProvider;
         mBrightnessController = quickQSBrightnessController;
         mBrightnessMirrorHandler = new BrightnessMirrorHandler(mBrightnessController);
@@ -76,7 +88,9 @@ public class QuickQSPanelController extends QSPanelControllerBase<QuickQSPanel> 
         updateMediaExpansion();
         mMediaHost.setShowsOnlyActiveMedia(true);
         mMediaHost.init(MediaHierarchyManager.LOCATION_QQS);
-        mBrightnessController.init(mShouldUseSplitNotificationShade);
+        mForceShowSlider = shouldShowSlider();
+        mBrightnessController.refreshVisibility(mForceShowSlider,
+            mShouldUseSplitNotificationShade);
     }
 
     private void updateMediaExpansion() {
@@ -97,15 +111,42 @@ public class QuickQSPanelController extends QSPanelControllerBase<QuickQSPanel> 
     }
 
     @Override
+    public boolean handleSettingsChange(@NonNull String key) {
+        final boolean handled = super.handleSettingsChange(key);
+        if (key.equals(Settings.System.BRIGHTNESS_SLIDER_POSITION)) {
+            updateBrightnessMirror();
+        } else if (key.equals(Settings.System.QQS_SHOW_BRIGHTNESS)) {
+            mForceShowSlider = shouldShowSlider();
+            mBrightnessController.refreshVisibility(mForceShowSlider,
+                mShouldUseSplitNotificationShade);
+            return true;
+        }
+        return handled;
+    }
+
+    @Override
+    protected void updateBrightnessMirror() {
+        mBrightnessMirrorHandler.updateBrightnessMirror();
+    }
+
+    @Override
     protected void onViewAttached() {
         super.onViewAttached();
         mBrightnessMirrorHandler.onQsPanelAttached();
+        registerObserver(Settings.System.QQS_SHOW_BRIGHTNESS);
     }
 
     @Override
     protected void onViewDetached() {
         super.onViewDetached();
         mBrightnessMirrorHandler.onQsPanelDettached();
+    }
+
+    private boolean shouldShowSlider() {
+        return mSystemSettings.getIntForUser(
+            Settings.System.QQS_SHOW_BRIGHTNESS,
+            0, UserHandle.USER_CURRENT
+        ) == 1;
     }
 
     private void setMaxTiles(int parseNumTiles) {
@@ -126,7 +167,8 @@ public class QuickQSPanelController extends QSPanelControllerBase<QuickQSPanel> 
             setMaxTiles(newMaxTiles);
         }
         updateMediaExpansion();
-        mBrightnessController.refreshVisibility(mShouldUseSplitNotificationShade);
+        mBrightnessController.refreshVisibility(mForceShowSlider,
+            mShouldUseSplitNotificationShade);
     }
 
     @Override
