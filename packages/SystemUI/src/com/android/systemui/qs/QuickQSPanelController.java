@@ -38,9 +38,9 @@ import com.android.systemui.plugins.qs.QSTile;
 import com.android.systemui.qs.customize.QSCustomizerController;
 import com.android.systemui.qs.dagger.QSScope;
 import com.android.systemui.qs.logging.QSLogger;
-import com.android.systemui.util.leak.RotationUtils;
 import com.android.systemui.settings.brightness.BrightnessMirrorHandler;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+import com.android.systemui.util.leak.RotationUtils;
 import com.android.systemui.util.settings.SystemSettings;
 
 import java.util.ArrayList;
@@ -88,7 +88,6 @@ public class QuickQSPanelController extends QSPanelControllerBase<QuickQSPanel> 
         updateMediaExpansion();
         mMediaHost.setShowsOnlyActiveMedia(true);
         mMediaHost.init(MediaHierarchyManager.LOCATION_QQS);
-        mForceShowSlider = shouldShowSlider();
         mBrightnessController.refreshVisibility(mForceShowSlider,
             mShouldUseSplitNotificationShade);
     }
@@ -142,11 +141,21 @@ public class QuickQSPanelController extends QSPanelControllerBase<QuickQSPanel> 
         mBrightnessMirrorHandler.onQsPanelDettached();
     }
 
+    @Override
+    void setListening(boolean listening) {
+        super.setListening(listening);
+        mBrightnessController.setListening(listening);
+    }
+
     private boolean shouldShowSlider() {
         return mSystemSettings.getIntForUser(
             Settings.System.QQS_SHOW_BRIGHTNESS,
             0, UserHandle.USER_CURRENT
         ) == 1;
+    }
+
+    public boolean isListening() {
+        return mView.isListening();
     }
 
     private void setMaxTiles(int parseNumTiles) {
