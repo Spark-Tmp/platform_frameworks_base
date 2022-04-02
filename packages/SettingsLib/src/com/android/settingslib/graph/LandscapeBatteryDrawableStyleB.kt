@@ -202,7 +202,16 @@ open class LandscapeBatteryDrawableStyleB(private val context: Context, frameCol
                     fillRect.left + (fillRect.width() * (1 - fillFraction))
 
         levelRect.left = Math.floor(fillTop.toDouble()).toFloat()
-        levelPath.addRect(levelRect, Path.Direction.CCW)
+        //levelPath.addRect(levelRect, Path.Direction.CCW)
+        levelPath.addRoundRect(levelRect,
+        floatArrayOf(3.0f,
+                     3.0f, 
+                     3.0f, 
+                     3.0f, 
+                     3.0f, 
+                     3.0f, 
+                     3.0f, 
+                     3.0f), Path.Direction.CCW)
 
         // The perimeter should never change
         unifiedPath.addPath(scaledPerimeter)
