@@ -27,6 +27,7 @@ import android.content.ContentResolver;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.UserHandle;
@@ -45,6 +46,7 @@ import android.widget.TextView;
 import androidx.annotation.StyleRes;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.internal.graphics.ColorUtils;
 import com.android.settingslib.graph.CircleBatteryDrawable;
 import com.android.settingslib.graph.FullCircleBatteryDrawable;
 import com.android.settingslib.graph.ThemedBatteryDrawable;
@@ -579,8 +581,17 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
         mNonAdaptedForegroundColor = mDualToneHandler.getFillColor(intensity);
         mNonAdaptedBackgroundColor = mDualToneHandler.getBackgroundColor(intensity);
 
-        updateColors(mNonAdaptedForegroundColor, mNonAdaptedBackgroundColor,
-                mNonAdaptedSingleToneColor);
+        updateColors(tint, staticColor(tint, 0.40208432f),
+                tint);
+    }
+
+    public static int staticColor(int dsbTint, float intensity) {
+        if (intensity < 0.0f) {
+            intensity = 0.0f;
+        } else if (intensity > 1.0f) {
+            intensity = 1.0f;
+        }
+        return ColorUtils.setAlphaComponent(dsbTint, (int) ((255.0f * intensity) * (((float) Color.alpha(dsbTint)) / 255.0f)));
     }
 
     /**
