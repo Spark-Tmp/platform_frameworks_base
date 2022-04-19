@@ -20,6 +20,7 @@ import static com.android.systemui.statusbar.notification.TransformState.TRANSFO
 
 import android.app.Notification;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.ArraySet;
 import android.view.NotificationHeaderView;
 import android.view.NotificationTopLineView;
@@ -29,6 +30,7 @@ import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -42,6 +44,7 @@ import com.android.systemui.statusbar.notification.CustomInterpolatorTransformat
 import com.android.systemui.statusbar.notification.FeedbackIcon;
 import com.android.systemui.statusbar.notification.ImageTransformState;
 import com.android.systemui.statusbar.notification.TransformState;
+import com.android.systemui.statusbar.notification.row.ActivatableNotificationView;
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow;
 
 import java.util.Stack;
@@ -58,6 +61,7 @@ public class NotificationHeaderViewWrapper extends NotificationViewWrapper {
 
     private CachingIconView mIcon;
     private NotificationExpandButton mExpandButton;
+    private LinearLayout mExpandLayout;
     private View mAltExpandTarget;
     private View mIconContainer;
     protected NotificationHeaderView mNotificationHeader;
@@ -109,6 +113,7 @@ public class NotificationHeaderViewWrapper extends NotificationViewWrapper {
         mHeaderText = mView.findViewById(com.android.internal.R.id.header_text);
         mAppNameText = mView.findViewById(com.android.internal.R.id.app_name_text);
         mExpandButton = mView.findViewById(com.android.internal.R.id.expand_button);
+        mExpandLayout = mExpandButton.findViewById(com.android.internal.R.id.expand_button_pill);
         mAltExpandTarget = mView.findViewById(com.android.internal.R.id.alternate_expand_target);
         mIconContainer = mView.findViewById(com.android.internal.R.id.conversation_icon_container);
         mWorkProfileImage = mView.findViewById(com.android.internal.R.id.profile_badge);
@@ -218,6 +223,8 @@ public class NotificationHeaderViewWrapper extends NotificationViewWrapper {
     public void updateExpandability(boolean expandable, View.OnClickListener onClickListener,
             boolean requestLayout) {
         mExpandButton.setVisibility(expandable ? View.VISIBLE : View.GONE);
+        Drawable bg = mExpandLayout.getBackground();
+        if (bg != null) bg.setAlpha(ActivatableNotificationView.mIsBlurStyleEnable ? 100 : 255);
         mExpandButton.setOnClickListener(expandable ? onClickListener : null);
         if (mAltExpandTarget != null) {
             mAltExpandTarget.setOnClickListener(expandable ? onClickListener : null);

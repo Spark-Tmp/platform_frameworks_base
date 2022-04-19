@@ -46,6 +46,8 @@ class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(
 
     private var qsDisabled = false
     private var expansionAmount = 0f
+    private var isBlurEnabled: Boolean = false
+    private var isCombinedEnable: Boolean = false
 
     /**
      * Sets the alpha of the background of this view.
@@ -72,6 +74,22 @@ class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(
             (settingsContainer.background as RippleDrawable).setForceSoftware(true)
         }
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+    }
+
+    fun updateBackground(alpha: Boolean) {
+    	isBlurEnabled = alpha
+        val background: Drawable = getBackground()
+        val blurAlpha = if (isCombinedEnable) 100 else 153
+        if (alpha) {
+            background.setAlpha(blurAlpha)
+        } else {
+            background.setAlpha(255)
+        }
+    }
+
+    fun updateAlpha(combined: Boolean) {
+    	isCombinedEnable = combined
+    	updateBackground(isBlurEnabled)
     }
 
     fun disable(

@@ -14,8 +14,6 @@
         xmlns:androidprv="http://schemas.android.com/apk/prv/res/android"
         android:gravity="center|bottom"
         android:id="@+id/entity_header"
-        android:background="@drawable/nad_bg_gaydient"
-        android:backgroundTint="?androidprv:attr/colorSurfaceHeader"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -69,10 +67,10 @@
             	</RelativeLayout>
             
                 <RelativeLayout
+                    android:id="@+id/user_profile_layout"
                     android:layout_width="110dp"
                     android:layout_height="140dp"
                     android:background="@drawable/nad_info_bg"
-                    android:backgroundTint="?android:attr/colorPrimary"
                     android:layout_gravity="center|start"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp">
@@ -95,6 +93,7 @@
     </LinearLayout>
         
     <View
+        android:id="@+id/top_round"
         android:layout_width="match_parent"
         android:layout_height="20.0dp"
         android:layout_marginBottom="-20dp"

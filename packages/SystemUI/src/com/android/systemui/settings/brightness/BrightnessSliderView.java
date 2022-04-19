@@ -33,8 +33,6 @@ import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import android.os.UserHandle;
-import android.provider.Settings.System;
 import com.android.settingslib.Utils;
 
 import com.android.settingslib.RestrictedLockUtils;
@@ -50,8 +48,8 @@ public class BrightnessSliderView extends LinearLayout {
     @NonNull
     private ToggleSeekBar mSlider;
     private ImageView mAutoIcon;
-    
-    private int colorActive, colorInactive, colorActiveAccent, colorActiveAlpha, colorInactiveAlpha, colorNonActive;
+
+    private int colorActive, colorInactive, colorActiveAccent, colorActiveAlpha, colorInactiveAlpha, colorNonActive, colorBlurActiveAlpha, colorCombinedBlurActiveAlpha, colorBlurInactiveAlpha, colorCombinedBlurInactiveAlpha;
     
     private DispatchTouchEventListener mListener;
     private Gefingerpoken mOnInterceptListener;
@@ -59,6 +57,8 @@ public class BrightnessSliderView extends LinearLayout {
     private Drawable mProgressDrawable, mIconProgressBrightness, mBackgroundSlider;
     private float mScale = 1f;
     private boolean mQsTileTint;
+    public boolean mBlurStyleEnabled;
+    public boolean mIsBlurCombinedEnabled;
 
     public BrightnessSliderView(Context context) {
         this(context, null);
@@ -90,6 +90,11 @@ public class BrightnessSliderView extends LinearLayout {
         colorInactiveAlpha = Utils.applyAlpha(0.2f, Utils.getColorAttrDefaultColor(getContext(), R.attr.offStateColor));
         colorNonActive = Utils.getColorAttrDefaultColor(getContext(), com.android.internal.R.attr.textColorPrimaryInverse);
 
+        colorBlurActiveAlpha = Utils.applyAlpha(0.6f, Utils.getColorAttrDefaultColor(getContext(), android.R.attr.colorAccent));
+        colorCombinedBlurActiveAlpha = Utils.applyAlpha(0.4f, Utils.getColorAttrDefaultColor(getContext(), android.R.attr.colorAccent));
+        colorBlurInactiveAlpha = Utils.applyAlpha(0.6f, Utils.getColorAttrDefaultColor(getContext(), R.attr.offStateColor));
+        colorCombinedBlurInactiveAlpha = Utils.applyAlpha(0.4f, Utils.getColorAttrDefaultColor(getContext(), R.attr.offStateColor));
+
         // Finds the progress drawable. Assumes brightness_progress_drawable.xml
         try {
             LayerDrawable progress = (LayerDrawable) mSlider.getProgressDrawable();
@@ -106,25 +111,51 @@ public class BrightnessSliderView extends LinearLayout {
     }
 
     public void updateColors(boolean qsTileTint) {
-        if (mQsTileTint != qsTileTint) {
-        	// Icon Auto Brightness
-        	mAutoIcon.setColorFilter(qsTileTint ? colorActiveAccent : colorNonActive);
-        	Drawable background = mAutoIcon.getBackground();
-        	background.setAlpha(qsTileTint ? 51 : 255);
+        boolean isBlurEnable = mBlurStyleEnabled;
+        mQsTileTint = qsTileTint;
+
+        // Icon Auto Brightness
+        mAutoIcon.setColorFilter(qsTileTint ? colorActiveAccent : colorNonActive);
+        Drawable background = mAutoIcon.getBackground();
+        int alphaBlur = mIsBlurCombinedEnabled ? 100 : 153;
+        background.setAlpha(qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255);
+        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurActiveAlpha : colorBlurActiveAlpha;
+        int colorAlphaBlurInactive = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
         if (mProgressDrawable != null)
-        	mProgressDrawable.setTintList(qsTileTint ? ColorStateList.valueOf(colorActiveAlpha) : 
-												ColorStateList.valueOf(colorActiveAccent));
+        	mProgressDrawable.setTintList(qsTileTint || isBlurEnable ? ColorStateList.valueOf(isBlurEnable ? colorAlphaBlur : colorActiveAlpha) : 
+					ColorStateList.valueOf(colorActiveAccent));
         if (mBackgroundSlider != null)
-        	mBackgroundSlider.setTintList(qsTileTint ? ColorStateList.valueOf(colorInactiveAlpha) :
-												ColorStateList.valueOf(colorInactive));
+        	mBackgroundSlider.setTintList(qsTileTint || isBlurEnable ? ColorStateList.valueOf(isBlurEnable ? colorAlphaBlurInactive : colorInactiveAlpha) :
+					ColorStateList.valueOf(colorInactive));
         if (mIconProgressBrightness != null)
         	mIconProgressBrightness.setTintList(qsTileTint ? ColorStateList.valueOf(colorActiveAccent) :
-												ColorStateList.valueOf(colorNonActive));
-        }
-        boolean needsLayout = mQsTileTint != qsTileTint;
-        mQsTileTint = qsTileTint;
-        if (needsLayout) requestLayout();
+					ColorStateList.valueOf(colorNonActive));
     }
+
+    public void updateAlpha(boolean isBlurEnable) {
+        mBlurStyleEnabled = isBlurEnable;
+        boolean qsTileTint = mQsTileTint;
+
+        // Icon Auto Brightness
+        mAutoIcon.setColorFilter(qsTileTint ? colorActiveAccent : colorNonActive);
+        Drawable background = mAutoIcon.getBackground();
+        int alphaBlur = mIsBlurCombinedEnabled ? 100 : 153;
+        background.setAlpha(qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255);
+        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurActiveAlpha : colorBlurActiveAlpha;
+        int colorAlphaBlurInactive = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
+        if (mProgressDrawable != null)
+        	mProgressDrawable.setTintList(qsTileTint || isBlurEnable ? ColorStateList.valueOf(isBlurEnable ? colorAlphaBlur : colorActiveAlpha) : 
+					ColorStateList.valueOf(colorActiveAccent));
+        if (mBackgroundSlider != null)
+        	mBackgroundSlider.setTintList(qsTileTint || isBlurEnable ? ColorStateList.valueOf(isBlurEnable ? colorAlphaBlurInactive : colorInactiveAlpha) :
+					ColorStateList.valueOf(colorInactive));
+    }
+
+    public void updateIsCombined(boolean isCombineEnable) {
+        mIsBlurCombinedEnabled = isCombineEnable;
+        updateAlpha(mBlurStyleEnabled);
+    }
+
 
     /**
      * Attaches a listener to relay touch events.

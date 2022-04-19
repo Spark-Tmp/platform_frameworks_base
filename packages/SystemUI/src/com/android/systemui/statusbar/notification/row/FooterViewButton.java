@@ -18,13 +18,20 @@ package com.android.systemui.statusbar.notification.row;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 
+import com.android.systemui.Dependency;
 import com.android.systemui.statusbar.AlphaOptimizedButton;
 import com.android.systemui.statusbar.notification.stack.NotificationStackScrollLayout;
+import com.android.systemui.tuner.TunerService;
 
 public class FooterViewButton extends AlphaOptimizedButton {
+
+    private static final String BLUR_STYLE =
+        "system:" + Settings.System.BLUR_STYLE_PREFERENCE_KEY;
 
     public FooterViewButton(Context context) {
         this(context, null);
@@ -41,6 +48,14 @@ public class FooterViewButton extends AlphaOptimizedButton {
     public FooterViewButton(Context context, AttributeSet attrs, int defStyleAttr,
             int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        TunerService tunerService = Dependency.get(TunerService.class);
+        tunerService.addTunable((key, newValue) -> {
+            if (key.equals(BLUR_STYLE)) {
+            	Drawable bg = getBackground();
+            	int alphaBlur = ActivatableNotificationView.mIsBlurCombinedEnabled ? 100 : 153;
+                if (bg != null) bg.setAlpha(TunerService.parseIntegerSwitch(newValue, false) ? alphaBlur : 255);
+            }
+        },  BLUR_STYLE);
     }
 
     /**

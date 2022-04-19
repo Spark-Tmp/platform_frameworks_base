@@ -25,6 +25,7 @@ import com.android.internal.widget.MessagingLinearLayout
 import com.android.systemui.R
 import com.android.systemui.statusbar.notification.NotificationFadeAware
 import com.android.systemui.statusbar.notification.NotificationUtils
+import com.android.systemui.statusbar.notification.row.ActivatableNotificationView
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow
 import com.android.systemui.statusbar.notification.row.wrapper.NotificationMessagingTemplateViewWrapper.setCustomImageMessageTransform
 

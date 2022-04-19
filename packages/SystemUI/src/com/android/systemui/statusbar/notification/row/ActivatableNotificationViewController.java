@@ -21,11 +21,15 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityManager;
 
+import com.android.systemui.Dependency;
 import com.android.systemui.Gefingerpoken;
 import com.android.systemui.classifier.FalsingCollector;
 import com.android.systemui.plugins.FalsingManager;
 import com.android.systemui.statusbar.phone.NotificationTapHelper;
+import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.ViewController;
+
+import android.provider.Settings;
 
 import javax.inject.Inject;
 
@@ -33,13 +37,20 @@ import javax.inject.Inject;
  * Controller for {@link ActivatableNotificationView}
  */
 public class ActivatableNotificationViewController
-        extends ViewController<ActivatableNotificationView> {
+        extends ViewController<ActivatableNotificationView> implements
+        TunerService.Tunable {
     private final ExpandableOutlineViewController mExpandableOutlineViewController;
     private final AccessibilityManager mAccessibilityManager;
     private final FalsingManager mFalsingManager;
     private final FalsingCollector mFalsingCollector;
     private final NotificationTapHelper mNotificationTapHelper;
     private final TouchHandler mTouchHandler = new TouchHandler();
+
+    private static final String BLUR_STYLE =
+        "system:" + Settings.System.BLUR_STYLE_PREFERENCE_KEY;
+
+    private static final String COMBINED_BLUR =
+        "system:" + Settings.System.COMBINED_BLUR;
 
     private boolean mNeedsDimming;
 
@@ -90,12 +101,13 @@ public class ActivatableNotificationViewController
 
     @Override
     protected void onViewAttached() {
-
+        Dependency.get(TunerService.class).addTunable(this, BLUR_STYLE);
+        Dependency.get(TunerService.class).addTunable(this, COMBINED_BLUR);
     }
 
     @Override
     protected void onViewDetached() {
-
+        Dependency.get(TunerService.class).removeTunable(this);
     }
 
     class TouchHandler implements Gefingerpoken, View.OnTouchListener {
@@ -140,4 +152,16 @@ public class ActivatableNotificationViewController
             return false;
         }
     }
+
+	@Override
+	public void onTuningChanged(String key, String newValue) {
+		switch (key) {
+			case BLUR_STYLE:
+				mView.updateAlpha(TunerService.parseIntegerSwitch(newValue, false));
+				break;
+			case COMBINED_BLUR:
+				mView.updateIsCombined(TunerService.parseIntegerSwitch(newValue, false));
+				break;
+		}
+	}
 }

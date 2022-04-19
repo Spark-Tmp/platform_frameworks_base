@@ -701,6 +701,7 @@ public class ExpandableNotificationRow extends ActivatableNotificationView
         int intrinsicBefore = getIntrinsicHeight();
         mIsHeadsUp = isHeadsUp;
         mPrivateLayout.setHeadsUp(isHeadsUp);
+        super.updateAlphaIsHeadsup(isHeadsUpState());
         if (mIsSummaryWithChildren) {
             // The overflow might change since we allow more lines as HUN.
             mChildrenContainer.updateGroupOverflow();

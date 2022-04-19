@@ -43,6 +43,7 @@ import com.android.systemui.statusbar.NotificationGroupingUtil;
 import com.android.systemui.statusbar.notification.FeedbackIcon;
 import com.android.systemui.statusbar.notification.NotificationFadeAware;
 import com.android.systemui.statusbar.notification.NotificationUtils;
+import com.android.systemui.statusbar.notification.row.ActivatableNotificationView;
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow;
 import com.android.systemui.statusbar.notification.row.ExpandableView;
 import com.android.systemui.statusbar.notification.row.HybridGroupManager;
@@ -985,6 +986,8 @@ public class NotificationChildrenContainer extends ViewGroup
             if (expanded) {
                 ColorDrawable cd = new ColorDrawable();
                 cd.setColor(mContainingNotification.calculateBgColor());
+                int alphaBlur = ActivatableNotificationView.mIsBlurCombinedEnabled ? 100 : 153;
+                cd.setAlpha(ActivatableNotificationView.mIsBlurStyleEnable ? alphaBlur : 255);
                 mNotificationHeader.setHeaderBackgroundDrawable(cd);
             } else {
                 mNotificationHeader.setHeaderBackgroundDrawable(null);

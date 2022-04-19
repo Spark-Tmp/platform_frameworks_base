@@ -119,6 +119,8 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
     private int mNormalColor;
     private boolean mIsBelowSpeedBump;
     private long mLastActionUpTime;
+    public static boolean mIsBlurStyleEnable;
+    public static boolean mIsBlurCombinedEnabled;
 
     private float mNormalBackgroundVisibilityAmount;
     private FakeShadowView mFakeShadow;
@@ -129,6 +131,7 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
     private float mOverrideAmount;
     private boolean mShadowHidden;
     private boolean mIsHeadsUpAnimation;
+    private boolean mIsHeadsUp;
     /* In order to track headsup longpress coorindate. */
     protected Point mTargetPoint;
     private boolean mDismissed;
@@ -155,6 +158,23 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
         mBgTint = NO_COLOR;
         mOverrideTint = NO_COLOR;
         mOverrideAmount = 0.0f;
+    }
+
+    public void updateAlpha(boolean isBlurEnable) {
+        mIsBlurStyleEnable = isBlurEnable;
+        float alphaBlur = mIsBlurCombinedEnabled ? 0.4f : 0.6f;
+        mBackgroundNormal.setAlpha(isBlurEnable && !mIsHeadsUp ? alphaBlur : 1f);
+        updateBackgroundColors(); updateBackground(); updateBackgroundTint(true); updateOutlineAlpha();
+    }
+
+    public void updateAlphaIsHeadsup(boolean isHeadsUp) {
+    	mIsHeadsUp = isHeadsUp;
+        updateAlpha(mIsBlurStyleEnable);
+    }
+
+    public void updateIsCombined(boolean isCombineEnable) {
+        mIsBlurCombinedEnabled = isCombineEnable;
+        updateAlpha(mIsBlurStyleEnable);
     }
 
     /**
@@ -285,7 +305,7 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
 
     private void updateOutlineAlpha() {
         float alpha = NotificationStackScrollLayout.BACKGROUND_ALPHA_DIMMED;
-        alpha = (alpha + (1.0f - alpha) * mNormalBackgroundVisibilityAmount);
+        alpha = mIsBlurStyleEnable ? 0f : (alpha + (1.0f - alpha) * mNormalBackgroundVisibilityAmount);
         setOutlineAlpha(alpha);
     }
 
@@ -523,6 +543,7 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
             }
         });
         mAppearAnimator.start();
+        updateAlpha(mIsBlurStyleEnable);
     }
 
     private int getCujType(boolean isAppearing) {

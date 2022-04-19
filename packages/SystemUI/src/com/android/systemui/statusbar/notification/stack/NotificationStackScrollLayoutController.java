@@ -117,6 +117,8 @@ import com.android.systemui.statusbar.policy.ZenModeController;
 import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.Compile;
 
+import android.provider.Settings;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -178,6 +180,12 @@ public class NotificationStackScrollLayoutController {
     @Nullable private Boolean mHistoryEnabled;
     private int mBarState;
     private HeadsUpAppearanceController mHeadsUpAppearanceController;
+
+    private static final String BLUR_STYLE =
+        "system:" + Settings.System.BLUR_STYLE_PREFERENCE_KEY;
+
+    private static final String COMBINED_BLUR =
+        "system:" + Settings.System.COMBINED_BLUR;
 
     private View mLongPressedView;
 
@@ -755,8 +763,24 @@ public class NotificationStackScrollLayoutController {
                         case HIGH_PRIORITY:
                             mView.setHighPriorityBeforeSpeedBump("1".equals(newValue));
                             break;
+                        case BLUR_STYLE:
+                            mView.updateBgColor();
+                            mView.updateDecorViews();
+                            mView.reinflateViews();
+                            updateShowEmptyShadeView();
+                            updateFooter();
+                            break;
+                        case COMBINED_BLUR:
+                            mView.updateBgColor();
+                            mView.updateDecorViews();
+                            mView.reinflateViews();
+                            updateShowEmptyShadeView();
+                            updateFooter();
+                            break;
                     }
                 },
+                COMBINED_BLUR,
+                BLUR_STYLE,
                 HIGH_PRIORITY,
                 Settings.Secure.NOTIFICATION_HISTORY_ENABLED);
 

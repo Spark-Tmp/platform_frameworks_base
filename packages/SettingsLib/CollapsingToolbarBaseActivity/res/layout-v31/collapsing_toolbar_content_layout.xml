@@ -25,6 +25,9 @@
         android:fitsSystemWindows="true"
         android:outlineAmbientShadowColor="@android:color/transparent"
         android:outlineSpotShadowColor="@android:color/transparent"
+        android:touchscreenBlocksFocus="false"
+        android:keyboardNavigationCluster="false"
+        android:elevation="0.1dp"
         android:background="@color/settingslib_colorSurfaceHeader"
         android:theme="@style/Theme.CollapsingToolbar.Settings">
 
@@ -35,13 +38,13 @@
             android:clipToPadding="false"
             app:forceApplySystemWindowInsetTop="true"
             app:extraMultilineHeightEnabled="true"
-            app:contentScrim="@color/settingslib_colorSurfaceHeader"
+            app:contentScrim="@drawable/header_round"
             app:maxLines="3"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
             app:scrimAnimationDuration="50"
             app:scrimVisibleHeightTrigger="@dimen/settingslib_scrim_visible_height_trigger"
             app:statusBarScrim="@null"
-            app:titleCollapseMode="fade"
+            app:titleCollapseMode="scale"
             app:collapsedTitleTextAppearance="@style/CollapsingToolbarTitle.Collapsed"
             app:expandedTitleTextAppearance="@style/CollapsingToolbarTitle.Expanded"
             app:expandedTitleMarginStart="@dimen/expanded_title_margin_start"
@@ -68,6 +71,7 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
     <FrameLayout
+        android:id="@+id/nad_round"
         android:layout_width="match_parent"
         android:layout_height="20.0dp"
         android:backgroundTint="@color/settingslib_colorSurfaceHeader"

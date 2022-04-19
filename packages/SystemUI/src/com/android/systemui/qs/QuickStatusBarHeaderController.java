@@ -60,10 +60,14 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
 
     private boolean mListening;
 
-    private boolean mQsTileTint;
-
     private static final String QS_TILE_TINT =
         "system:" + Settings.System.QS_TILE_TINT;
+
+    private static final String BLUR_STYLE =
+        "system:" + Settings.System.BLUR_STYLE_PREFERENCE_KEY;
+
+    private static final String COMBINED_BLUR =
+        "system:" + Settings.System.COMBINED_BLUR;
 
     @Inject
     QuickStatusBarHeaderController(QuickStatusBarHeader view,
@@ -107,6 +111,8 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
         mIconContainer.setShouldRestrictIcons(false);
         mStatusBarIconController.addIconGroup(mIconManager);
         Dependency.get(TunerService.class).addTunable(this, QS_TILE_TINT);
+        Dependency.get(TunerService.class).addTunable(this, BLUR_STYLE);
+        Dependency.get(TunerService.class).addTunable(this, COMBINED_BLUR);
 
         List<String> rssiIgnoredSlots = List.of(
                 getResources().getString(com.android.internal.R.string.status_bar_mobile)
@@ -148,11 +154,13 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
 	public void onTuningChanged(String key, String newValue) {
 		switch (key) {
 			case QS_TILE_TINT:
-				mQsTileTint =
-					TunerService.parseIntegerSwitch(newValue, false);
-				mView.updateColors(mQsTileTint);
+				mView.updateColors(TunerService.parseIntegerSwitch(newValue, false));
 				break;
-			default:
+			case BLUR_STYLE:
+				mView.updateAlpha(TunerService.parseIntegerSwitch(newValue, false));
+				break;
+			case COMBINED_BLUR:
+				mView.updateIsCombined(TunerService.parseIntegerSwitch(newValue, false));
 				break;
 		}
 	}

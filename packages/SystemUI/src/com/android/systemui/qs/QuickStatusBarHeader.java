@@ -45,8 +45,6 @@ import android.widget.AnalogClock;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import android.os.UserHandle;
-
 import com.android.internal.policy.SystemBarUtils;
 import com.android.settingslib.Utils;
 import com.android.systemui.R;
@@ -71,7 +69,9 @@ public class QuickStatusBarHeader extends FrameLayout implements
     private boolean mExpanded;
     private boolean mQsDisabled;
 
-    private boolean mQsTileTint;
+    public boolean mQsTileTint;
+    public boolean mBlurStyleEnabled;
+    public boolean mIsBlurCombinedEnabled;
     private Drawable mClockBg;
 
     @Nullable
@@ -133,7 +133,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
     private final ActivityStarter mActivityStarter;
     private final Vibrator mVibrator;
     
-    private int colorActive, colorInactive, colorActiveAccent, colorActiveAlpha, colorInactiveAlpha, colorNonActive;
+    private int colorActive, colorInactive, colorActiveAccent, colorActiveAlpha, colorInactiveAlpha, colorNonActive, colorBlurInactiveAlpha, colorCombinedBlurInactiveAlpha;
 
     public QuickStatusBarHeader(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -190,9 +190,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
         // QS will always show the estimate, and BatteryMeterView handles the case where
         // it's unavailable or charging
         mBatteryRemainingIcon.setPercentShowMode(BatteryMeterView.MODE_ESTIMATE);
-        
-        boolean qsTileTint = mQsTileTint;
-                
+
         //Identify color source
         colorActive = Utils.getColorAttrDefaultColor(mContext,
             com.android.internal.R.attr.colorAccentPrimary);
@@ -204,8 +202,10 @@ public class QuickStatusBarHeader extends FrameLayout implements
         colorInactiveAlpha = Utils.applyAlpha(0.2f, Utils.getColorAttrDefaultColor(mContext, R.attr.offStateColor));
         colorNonActive =
             Utils.getColorAttrDefaultColor(mContext, com.android.internal.R.attr.textColorPrimaryInverse);
+        colorBlurInactiveAlpha = Utils.applyAlpha(0.6f, Utils.getColorAttrDefaultColor(mContext, R.attr.offStateColor));
+        colorCombinedBlurInactiveAlpha = Utils.applyAlpha(0.4f, Utils.getColorAttrDefaultColor(mContext, R.attr.offStateColor));
 
-        Drawable background = mClockBg = mJrClock.getBackground();
+        mClockBg = mJrClock.getBackground();
         
         mIconsAlphaAnimatorFixed = new TouchAnimator.Builder()
                 //.addFloat(mIconContainer, "alpha", 0, 1)
@@ -417,9 +417,10 @@ public class QuickStatusBarHeader extends FrameLayout implements
                         }
                         mJrBaseContainer.setBackgroundResource(R.drawable.qs_clock_bg);
 
-                        Drawable mBgClockExpand = mJrBaseContainer.getBackground();
-                        if (mBgClockExpand != null) {
-                            mBgClockExpand.setTint(mQsTileTint ? colorInactiveAlpha : colorInactive);
+                        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
+                        Drawable bgClockExpand = mJrBaseContainer.getBackground();
+                        if (bgClockExpand != null) {
+                            bgClockExpand.setTint(mQsTileTint || mBlurStyleEnabled ? (mBlurStyleEnabled ? colorAlphaBlur : colorInactiveAlpha) : colorInactive);
                         }
                     }
 
@@ -502,18 +503,35 @@ public class QuickStatusBarHeader extends FrameLayout implements
     }
 
     public void updateColors(boolean qsTileTint) {
-        if (mQsTileTint != qsTileTint) {
-        	mClockBg.setAlpha(qsTileTint ? 51 : 255);
-        	mJrClock.setTextColor(qsTileTint ? colorActiveAccent : colorNonActive);
-
-        	Drawable bgClockExpand = mJrBaseContainer.getBackground();
-        	if (bgClockExpand != null) {
-        	    bgClockExpand.setTint(qsTileTint ? colorInactiveAlpha : colorInactive);
-        	}
-        }
-        boolean needsLayout = mQsTileTint != qsTileTint;
         mQsTileTint = qsTileTint;
-        if (needsLayout) requestLayout();
+    	boolean isBlurEnable = mBlurStyleEnabled;
+        int alphaBlur = mIsBlurCombinedEnabled ? 100 : 153;
+        mClockBg.setAlpha(qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255);
+
+        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
+        Drawable bgClockExpand = mJrBaseContainer.getBackground();
+        if (bgClockExpand != null) {
+            bgClockExpand.setTint(qsTileTint || isBlurEnable ? (isBlurEnable ? colorAlphaBlur : colorInactiveAlpha) : colorInactive);
+        }
+        mJrClock.setTextColor(qsTileTint ? colorActiveAccent : colorNonActive);
+    }
+
+    public void updateAlpha(boolean isBlurEnable) {
+    	mBlurStyleEnabled = isBlurEnable;
+        boolean qsTileTint = mQsTileTint;
+        int alphaBlur = mIsBlurCombinedEnabled ? 100 : 153;
+        mClockBg.setAlpha(qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255);
+
+        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
+        Drawable bgClockExpand = mJrBaseContainer.getBackground();
+        if (bgClockExpand != null) {
+            bgClockExpand.setTint(qsTileTint || isBlurEnable ? (isBlurEnable ? colorAlphaBlur : colorInactiveAlpha) : colorInactive);
+        }
+    }
+
+    public void updateIsCombined(boolean isCombineEnable) {
+        mIsBlurCombinedEnabled = isCombineEnable;
+        updateAlpha(mBlurStyleEnabled);
     }
 
     @Override

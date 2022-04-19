@@ -30,6 +30,7 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 
@@ -392,7 +393,6 @@ public class BarTransitions {
         }
 
         public boolean ishome() {
-            isMusic();
             ActivityManager.RunningTaskInfo runningTaskInfo = ActivityManagerWrapper.getInstance().getRunningTask();
             if (runningTaskInfo == null) {
                 return false;
@@ -401,12 +401,12 @@ public class BarTransitions {
             }
         }
 
-        public boolean isMusic() {
+        public boolean isSettings() {
             ActivityManager.RunningTaskInfo runningTaskInfo = ActivityManagerWrapper.getInstance().getRunningTask();
             if (runningTaskInfo == null) {
                 return false;
             } else {
-                return runningTaskInfo.topActivity.equals("com.sonyericsson.music");
+                return runningTaskInfo.topActivity.getPackageName().equals("com.android.settings");
             }
         }
 
@@ -454,8 +454,10 @@ public class BarTransitions {
 
         public final synchronized void applyMode(final int mode, boolean animate) {
             mCurrentMode = mode;
+            boolean blurStyleEnabled = Settings.System.getIntForUser(mContext.getContentResolver(), Settings.System.BLUR_STYLE_PREFERENCE_KEY, 0, -2) == 1;
             mHandler.post(() -> {
-                int targetColor = (ishome() || ls()) ? getColorTransparent() : getTargetColor(mode);
+                int targetColor = ishome() || ls() || (blurStyleEnabled && isSettings()) ?
+                                     getColorTransparent() : getTargetColor(mode);
                 int targetGradientAlpha = getTargetGradientAlpha(mode);
                 if (targetColor != mCurrentColor || targetGradientAlpha != mCurrentGradientAlpha) {
                     setCurrentColor(targetColor);
@@ -470,7 +472,9 @@ public class BarTransitions {
         }
 
         protected final void generateAnimator(int targetMode) {
-            final int targetColor = (ishome() || ls()) ? getColorTransparent() : getTargetColor(targetMode);
+            boolean blurStyleEnabled = Settings.System.getIntForUser(mContext.getContentResolver(), Settings.System.BLUR_STYLE_PREFERENCE_KEY, 0, -2) == 1;
+            final int targetColor = ishome() || ls() || (blurStyleEnabled && isSettings()) ?
+                                     getColorTransparent() : getTargetColor(targetMode);
             final int targetGradientAlpha = getTargetGradientAlpha(targetMode);
             if (targetColor != mCurrentColor || targetGradientAlpha != mCurrentGradientAlpha) {
                 mHandler.post(() -> {

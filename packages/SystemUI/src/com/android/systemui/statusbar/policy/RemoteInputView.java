@@ -30,6 +30,7 @@ import android.graphics.BlendMode;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.UserHandle;
 import android.text.Editable;
@@ -232,6 +233,12 @@ public class RemoteInputView extends LinearLayout implements View.OnClickListene
         mProgressBar.setIndeterminateTintList(accentColor);
         mProgressBar.setSecondaryProgressTintList(accentColor);
         setBackgroundColor(backgroundColor);
+    }
+
+    public void updateBackground(boolean alpha) {
+        Drawable bg = getBackground();
+        if (bg != null) bg.setAlpha(alpha ? 0 : 255);
+        mSendButton.setBackground(alpha ? mContentBackground : null);
     }
 
     @Override

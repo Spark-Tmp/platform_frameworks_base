@@ -24,12 +24,14 @@ import android.content.pm.ShortcutManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.provider.Settings.System
 import android.text.TextUtils
 import android.util.ArraySet
 import android.util.Log
 import android.view.View
 import com.android.internal.logging.UiEventLogger
 import com.android.systemui.R
+import com.android.systemui.tuner.TunerService
 import com.android.systemui.statusbar.NotificationRemoteInputManager
 import com.android.systemui.statusbar.RemoteInputController
 import com.android.systemui.statusbar.notification.collection.NotificationEntry
@@ -117,8 +119,12 @@ class RemoteInputViewControllerImpl @Inject constructor(
     private val remoteInputQuickSettingsDisabler: RemoteInputQuickSettingsDisabler,
     private val remoteInputController: RemoteInputController,
     private val shortcutManager: ShortcutManager,
+    private val tunerService: TunerService,
     private val uiEventLogger: UiEventLogger
 ) : RemoteInputViewController {
+
+    private val BLUR_STYLE =
+            "system:" + System.BLUR_STYLE_PREFERENCE_KEY
 
     private val onSendListeners = ArraySet<OnSendRemoteInputListener>()
     private val resources get() = view.resources
@@ -152,6 +158,12 @@ class RemoteInputViewControllerImpl @Inject constructor(
     override fun bind() {
         if (isBound) return
         isBound = true
+
+        tunerService.addTunable(object : TunerService.Tunable {
+            override fun onTuningChanged(key: String?, newValue: String?) {
+                view.updateBackground(tunerService.getValue(key, 1) != 0)
+            }
+        }, BLUR_STYLE)
 
         // TODO: refreshUI method?
         remoteInput?.let {

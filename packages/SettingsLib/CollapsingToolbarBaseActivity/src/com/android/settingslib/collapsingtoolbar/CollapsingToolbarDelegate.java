@@ -19,6 +19,9 @@ package com.android.settingslib.collapsingtoolbar;
 import static android.text.Layout.HYPHENATION_FREQUENCY_NORMAL_FAST;
 
 import android.app.ActionBar;
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.graphics.text.LineBreakConfig;
 import android.os.Build;
 import android.view.LayoutInflater;
@@ -83,8 +86,11 @@ public class CollapsingToolbarDelegate {
         if (view instanceof CoordinatorLayout) {
             mCoordinatorLayout = (CoordinatorLayout) view;
         }
+        Context context = view.getContext();
+        Resources r = context.getResources();
+        boolean isBlurEnable = android.provider.Settings.System.getInt(
+                context.getContentResolver(), "blur_style", 0) == 1;
         mCollapsingToolbarLayout = view.findViewById(R.id.collapsing_toolbar);
-        mAppBarLayout = view.findViewById(R.id.app_bar);
         if (mCollapsingToolbarLayout != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mCollapsingToolbarLayout.setLineSpacingMultiplier(TOOLBAR_LINE_SPACING_MULTIPLIER);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -96,7 +102,22 @@ public class CollapsingToolbarDelegate {
                                                 LineBreakConfig.LINE_BREAK_WORD_STYLE_PHRASE)
                                         .build()));
             }
+            Drawable header = r.getDrawable(R.drawable.header_round);
+            header.setAlpha(isBlurEnable ? 180 : 255);
+            mCollapsingToolbarLayout.setContentScrim(header);
         }
+        mAppBarLayout = view.findViewById(R.id.app_bar);
+        Drawable bg = mAppBarLayout.getBackground();
+        if (bg != null) bg.setAlpha(isBlurEnable ? 0 : 255);
+        FrameLayout nadRound = view.findViewById(R.id.nad_round);
+        mAppBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                float offset = (float)Math.abs(verticalOffset) / appBarLayout.getTotalScrollRange();
+                nadRound.setAlpha(isBlurEnable ? offset : 1f);
+            }
+        });
         disableCollapsingToolbarLayoutScrollingBehavior();
         mToolbar = view.findViewById(R.id.action_bar);
         mContentFrameLayout = view.findViewById(R.id.content_frame);

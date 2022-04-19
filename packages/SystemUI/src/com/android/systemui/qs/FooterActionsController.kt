@@ -161,6 +161,14 @@ internal class FooterActionsController @Inject constructor(
     private val QS_TILE_TINT =
             "system:" + System.QS_TILE_TINT
 
+    private var isBlurEnable: Boolean = false
+    private val BLUR_STYLE =
+            "system:" + System.BLUR_STYLE_PREFERENCE_KEY
+
+    private var isCombinedBlurEnable: Boolean = false
+    private val COMBINED_BLUR =
+            "system:" + System.COMBINED_BLUR
+
     @VisibleForTesting
     internal val securityFootersSeparator = View(context).apply { visibility = View.GONE }
 
@@ -249,6 +257,21 @@ internal class FooterActionsController @Inject constructor(
             }
         }, QS_TILE_TINT)
 
+        tunerService.addTunable(object : TunerService.Tunable {
+            override fun onTuningChanged(key: String?, newValue: String?) {
+                isBlurEnable = tunerService.getValue(key, 1) != 0
+                updateColors()
+                mView.updateBackground(isBlurEnable)
+            }
+        }, BLUR_STYLE)
+
+        tunerService.addTunable(object : TunerService.Tunable {
+            override fun onTuningChanged(key: String?, newValue: String?) {
+                isCombinedBlurEnable = tunerService.getValue(key, 1) != 0
+                mView.updateAlpha(isCombinedBlurEnable)
+            }
+        }, COMBINED_BLUR)
+
         settingsButtonContainer.setOnClickListener(onClickListener)
         multiUserSetting.isListening = true
 
@@ -282,11 +305,15 @@ internal class FooterActionsController @Inject constructor(
 
     private fun updateColors() {
         val background: Drawable = powerMenuLite.getBackground()
-        if (qsTileTint) {
-            background.setAlpha(51)
-            powerMenuLite.setColorFilter(colorActiveAccent)
+        val blurAlpha = if (isCombinedBlurEnable) 100 else 153
+        if (qsTileTint || isBlurEnable) {
+            background.setAlpha(if (isBlurEnable) blurAlpha else 51)
         } else {
             background.setAlpha(255)
+        }
+        if (qsTileTint) {
+            powerMenuLite.setColorFilter(colorActiveAccent)
+        } else {
             powerMenuLite.setColorFilter(colorNonActive)
         }
     }

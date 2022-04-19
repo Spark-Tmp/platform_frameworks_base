@@ -98,6 +98,16 @@ open class QSTileViewImpl @JvmOverloads constructor(
             System.QS_TILE_TINT, 0, UserHandle.USER_CURRENT
     ) == 1
 
+    private val isBlurEnable: Boolean = System.getIntForUser(
+            context.contentResolver,
+            System.BLUR_STYLE_PREFERENCE_KEY, 0, UserHandle.USER_CURRENT
+    ) == 1
+
+    private val isCombinedBlurEnable: Boolean = System.getIntForUser(
+            context.contentResolver,
+            System.COMBINED_BLUR, 0, UserHandle.USER_CURRENT
+    ) == 1
+
     private val colorActive = Utils.getColorAttrDefaultColor(context,
             android.R.attr.colorAccent)
     private val colorInactive = Utils.getColorAttrDefaultColor(context, R.attr.offStateColor)
@@ -107,6 +117,11 @@ open class QSTileViewImpl @JvmOverloads constructor(
             com.android.internal.R.attr.colorAccent)
     private val colorActiveAlpha = Utils.applyAlpha(0.2f, Utils.getColorAttrDefaultColor(context, android.R.attr.colorAccent))
     private val colorInactiveAlpha = Utils.applyAlpha(0.2f, Utils.getColorAttrDefaultColor(context, R.attr.offStateColor))
+
+    private val colorBlurInactiveAlpha = Utils.applyAlpha(0.6f, Utils.getColorAttrDefaultColor(context, R.attr.offStateColor))
+    private val colorBlurActiveAlpha = Utils.applyAlpha(0.6f, Utils.getColorAttrDefaultColor(context, android.R.attr.colorAccent))
+    private val colorCombinedBlurInactiveAlpha = Utils.applyAlpha(0.4f, Utils.getColorAttrDefaultColor(context, R.attr.offStateColor))
+    private val colorCombinedBlurActiveAlpha = Utils.applyAlpha(0.4f, Utils.getColorAttrDefaultColor(context, android.R.attr.colorAccent))
 
     private val colorLabelActive =
             Utils.getColorAttrDefaultColor(context, com.android.internal.R.attr.textColorPrimaryInverse)
@@ -626,13 +641,21 @@ open class QSTileViewImpl @JvmOverloads constructor(
         return when {
             state == Tile.STATE_UNAVAILABLE || disabledByPolicy -> colorUnavailable
             state == Tile.STATE_ACTIVE -> 
-            if (qsTileTint)
-                colorActiveAlpha
+            if (qsTileTint || isBlurEnable)
+                if (isBlurEnable) {
+                    if (isCombinedBlurEnable) colorCombinedBlurActiveAlpha else colorBlurActiveAlpha
+                } else {
+                    colorActiveAlpha
+                }
             else
                 colorActive
             state == Tile.STATE_INACTIVE ->
-            if (qsTileTint)
-                colorInactiveAlpha
+            if (qsTileTint || isBlurEnable)
+                if (isBlurEnable) {
+                    if (isCombinedBlurEnable) colorCombinedBlurInactiveAlpha else colorBlurInactiveAlpha
+                } else {
+                    colorInactiveAlpha
+                }
             else
                 colorInactive
             else -> {

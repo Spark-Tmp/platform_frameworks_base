@@ -57,10 +57,14 @@ public class BrightnessSliderController extends ViewController<BrightnessSliderV
     private boolean mTracking;
     private final FalsingManager mFalsingManager;
 
-    private boolean mQsTileTint;
-
     private static final String QS_TILE_TINT =
         "system:" + Settings.System.QS_TILE_TINT;
+
+    private static final String BLUR_STYLE =
+        "system:" + Settings.System.BLUR_STYLE_PREFERENCE_KEY;
+
+    private static final String COMBINED_BLUR =
+        "system:" + Settings.System.COMBINED_BLUR;
 
     private final Gefingerpoken mOnInterceptListener = new Gefingerpoken() {
         @Override
@@ -99,6 +103,8 @@ public class BrightnessSliderController extends ViewController<BrightnessSliderV
         mView.setOnSeekBarChangeListener(mSeekListener);
         mView.setOnInterceptListener(mOnInterceptListener);
         Dependency.get(TunerService.class).addTunable(this, QS_TILE_TINT);
+        Dependency.get(TunerService.class).addTunable(this, BLUR_STYLE);
+        Dependency.get(TunerService.class).addTunable(this, COMBINED_BLUR);
     }
 
     @Override
@@ -123,11 +129,13 @@ public class BrightnessSliderController extends ViewController<BrightnessSliderV
 	public void onTuningChanged(String key, String newValue) {
 		switch (key) {
 			case QS_TILE_TINT:
-				mQsTileTint =
-					TunerService.parseIntegerSwitch(newValue, false);
-				mView.updateColors(mQsTileTint);
+				mView.updateColors(TunerService.parseIntegerSwitch(newValue, false));
 				break;
-			default:
+			case BLUR_STYLE:
+				mView.updateAlpha(TunerService.parseIntegerSwitch(newValue, false));
+				break;
+			case COMBINED_BLUR:
+				mView.updateIsCombined(TunerService.parseIntegerSwitch(newValue, false));
 				break;
 		}
 	}

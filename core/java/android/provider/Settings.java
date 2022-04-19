@@ -6134,6 +6134,34 @@ public final class Settings {
         };
 
         /**
+         * Enable and disable combined blur Expanded Notifications Panel
+         *
+         * @hide
+         */
+        public static final String COMBINED_BLUR =
+                 "combined_blur";
+
+        /**
+         * the blur scale values
+         * @hide
+         */
+        public static final String BLUR_SCALE_PREFERENCE_KEY = "blur_scale";
+
+        /**
+         * the blur radius values
+         *
+         * @hide
+         */
+        public static final String BLUR_RADIUS_PREFERENCE_KEY =
+                 "blur_radius";
+
+        /**
+         * Enable and disable The Nusantara Blur Style
+         * @hide
+         */
+        public static final String BLUR_STYLE_PREFERENCE_KEY = "blur_style";
+
+        /**
          * These are all public system settings
          *
          * @hide

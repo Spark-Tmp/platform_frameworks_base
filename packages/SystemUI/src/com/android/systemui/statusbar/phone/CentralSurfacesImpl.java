@@ -72,6 +72,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.hardware.devicestate.DeviceStateManager;
 import android.metrics.LogMaker;
 import android.net.Uri;
@@ -222,6 +223,7 @@ import com.android.systemui.statusbar.notification.NotificationWakeUpCoordinator
 import com.android.systemui.statusbar.notification.init.NotificationsController;
 import com.android.systemui.statusbar.notification.interruption.NotificationInterruptStateProvider;
 import com.android.systemui.statusbar.notification.logging.NotificationLogger;
+import com.android.systemui.statusbar.notification.row.ActivatableNotificationView;
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow;
 import com.android.systemui.statusbar.notification.row.NotificationGutsManager;
 import com.android.systemui.statusbar.notification.stack.NotificationListContainer;
@@ -1461,7 +1463,8 @@ public class CentralSurfacesImpl extends CoreStartable implements
     public void updateDismissAllVisibility(boolean visible) {
         if (mDismissAllButton == null) return;
         if (!isDismissAllButtonEnabled() || !mStackScrollerController.hasActiveClearableNotifications(ROWS_ALL)
-                     || !visible || mState == StatusBarState.KEYGUARD || mQSPanelController.isExpanded()) {
+                     || !visible || mState == StatusBarState.KEYGUARD || mQSPanelController.isExpanded()
+                     || (mHeadsUpManager.hasPinnedHeadsUp() && mState == StatusBarState.SHADE)) {
             mDismissAllButton.setAlpha(0);
             mDismissAllButton.getBackground().setAlpha(0);
             mDismissAllButton.setVisibility(View.GONE);
@@ -1469,7 +1472,9 @@ public class CentralSurfacesImpl extends CoreStartable implements
             mDismissAllButton.setVisibility(View.VISIBLE);
             int alpha = Math.round(mNotificationPanelViewController.getExpandedFraction() * 255.0f);
             mDismissAllButton.setAlpha(alpha);
-            mDismissAllButton.getBackground().setAlpha(alpha);
+            int alphaBlur = ActivatableNotificationView.mIsBlurCombinedEnabled ? 100 : 153;
+            boolean isBlurEnable = ActivatableNotificationView.mIsBlurStyleEnable;
+            mDismissAllButton.getBackground().setAlpha(isBlurEnable ? alphaBlur : alpha);
         }
     }
 
@@ -2047,6 +2052,8 @@ public class CentralSurfacesImpl extends CoreStartable implements
             mSystemSettings.registerContentObserverForUser(Settings.System.QS_TILE_TINT, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.NOTIFICATION_MATERIAL_DISMISS, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.LOCKSCREEN_MEDIA_BLUR, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.BLUR_STYLE_PREFERENCE_KEY, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.COMBINED_BLUR, this, UserHandle.USER_ALL);
         }
 
         @Override
@@ -2077,6 +2084,16 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 case Settings.System.LOCKSCREEN_MEDIA_BLUR:
                     setLockScreenMediaBlurLevel();
                     break;
+                case Settings.System.BLUR_STYLE_PREFERENCE_KEY:
+                    mQSPanelController.getHost().reloadAllTiles();
+                    updateDismissAllVisibility(false);
+                    updateDismissAllButton();
+                    break;
+                case Settings.System.COMBINED_BLUR:
+                    mQSPanelController.getHost().reloadAllTiles();
+                    updateDismissAllVisibility(false);
+                    updateDismissAllButton();
+                    break;
             }
         }
 
@@ -2090,6 +2107,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 setUseLessBoringHeadsUp();
                 setRetickerStatus();
                 setLockScreenMediaBlurLevel();
+                mQSPanelController.getHost().reloadAllTiles();
         });
     }
 
@@ -2207,6 +2225,9 @@ public class CentralSurfacesImpl extends CoreStartable implements
         // This is only possible to do atomically because the status bar is at the top of the screen!
         mNotificationShadeWindowController.setPanelVisible(true);
 
+        // start the blur configuration
+        mNotificationPanelViewController.startBlurTask();
+
         visibilityChanged(true);
         mCommandQueue.recomputeDisableFlags(mDisplayId, !force /* animate */);
         setInteracting(StatusBarManager.WINDOW_STATUS_BAR, true);
@@ -2276,6 +2297,9 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 1.0f /* speedUpFactor */);
 
         mNotificationPanelViewController.closeQs();
+
+        // Recycle blur expanded is invisible
+        mNotificationPanelViewController.recycle();
 
         mExpandedVisible = false;
         visibilityChanged(false);

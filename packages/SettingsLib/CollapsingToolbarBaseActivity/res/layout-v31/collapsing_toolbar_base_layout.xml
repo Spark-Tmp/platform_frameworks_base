@@ -21,5 +21,13 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
+    <com.nusantara.support.BlurView
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:gravity="center"
+       android:orientation="vertical"
+       android:scaleType="centerCrop"
+       android:elevation="0.0dip" />
+
     <include layout="@layout/collapsing_toolbar_content_layout"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
