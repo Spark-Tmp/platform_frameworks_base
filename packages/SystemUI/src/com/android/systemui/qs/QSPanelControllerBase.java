@@ -111,6 +111,10 @@ public abstract class QSPanelControllerBase<T extends QSPanel> extends ViewContr
                         switchTileLayout(false);
                     }
                     onConfigurationChanged();
+                    if (mView.getTileLayout() != null) {
+                        mView.getTileLayout().updateSettings();
+                        setTiles();
+                    }
                 }
             };
 
@@ -203,6 +207,8 @@ public abstract class QSPanelControllerBase<T extends QSPanel> extends ViewContr
     protected void onViewAttached() {
         mView.updateBrightnessView(isSliderAtTop());
         registerObserver(Settings.System.BRIGHTNESS_SLIDER_POSITION);
+        registerObserver(Settings.System.QS_TILE_LABEL_HIDE, UserHandle.USER_CURRENT);
+        registerObserver(Settings.System.QS_TILE_VERTICAL_LAYOUT, UserHandle.USER_CURRENT);
         mQsTileRevealController = createTileRevealController();
         if (mQsTileRevealController != null) {
             mQsTileRevealController.setExpansion(mRevealExpansion);
@@ -220,8 +226,12 @@ public abstract class QSPanelControllerBase<T extends QSPanel> extends ViewContr
     }
 
     protected void registerObserver(String key) {
+        registerObserver(key, UserHandle.USER_ALL);
+    }
+
+    private void registerObserver(String key, int user) {
         mSystemSettings.registerContentObserverForUser(
-            key, mSettingsObserver, UserHandle.USER_ALL);
+            key, mSettingsObserver, user);
     }
 
     @Override

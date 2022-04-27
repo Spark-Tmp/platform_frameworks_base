@@ -103,5 +103,7 @@ public class SystemSettings {
         Settings.System.CUSTOM_RINGTONE_VIBRATION_PATTERN,
         Settings.System.INCALL_FEEDBACK_VIBRATE,
         Settings.System.USE_OLD_MOBILETYPE,
+        Settings.System.QS_TILE_LABEL_HIDE,
+        Settings.System.QS_TILE_VERTICAL_LAYOUT,
     };
 }
