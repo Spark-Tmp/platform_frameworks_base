@@ -1992,6 +1992,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
             mSystemSettings.registerContentObserverForUser(Settings.System.DOUBLE_TAP_SLEEP_LOCKSCREEN, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.DOUBLE_TAP_SLEEP_GESTURE, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.LESS_BORING_HEADS_UP, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.RETICKER_STATUS, this, UserHandle.USER_ALL);
         }
 
         @Override
@@ -2009,6 +2010,9 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 case Settings.System.LESS_BORING_HEADS_UP:
                     setUseLessBoringHeadsUp();
                     break;
+                case Settings.System.RETICKER_STATUS:
+                    setUseLessBoringHeadsUp();
+                    break;
             }
         }
 
@@ -2018,6 +2022,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
                 updateDoubleTapLsGesture();
                 updateNavigationBar(true);
                 setUseLessBoringHeadsUp();
+                setRetickerStatus();
         });
     }
 
@@ -2070,6 +2075,14 @@ public class CentralSurfacesImpl extends CoreStartable implements
                     Settings.System.LESS_BORING_HEADS_UP, 0, UserHandle.USER_CURRENT) == 1;
             mMainHandler.post(() -> {
                 mNotificationInterruptStateProvider.setUseLessBoringHeadsUp(lessBoringHeadsUp);
+            });
+        }
+
+        private void setRetickerStatus() {
+            final boolean reTicker = mSystemSettings.getIntForUser(
+                    Settings.System.RETICKER_STATUS, 0, UserHandle.USER_CURRENT) == 1;
+            mMainHandler.post(() -> {
+                mNotificationInterruptStateProvider.setUseReticker(reTicker);
             });
         }
     }
