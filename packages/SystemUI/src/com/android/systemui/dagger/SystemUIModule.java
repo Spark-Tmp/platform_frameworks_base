@@ -148,7 +148,8 @@ import dagger.Provides;
             TunerModule.class,
             UserModule.class,
             UtilModule.class,
-            WalletModule.class
+            WalletModule.class,
+            SystemUIKotlinModule.class
         },
         subcomponents = {
             CentralSurfacesComponent.class,
