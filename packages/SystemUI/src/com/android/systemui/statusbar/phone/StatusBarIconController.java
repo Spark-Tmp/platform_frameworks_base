@@ -52,7 +52,7 @@ import com.android.systemui.statusbar.phone.StatusBarSignalPolicy.WifiIconState;
 import com.android.systemui.statusbar.pipeline.StatusBarPipelineFlags;
 import com.android.systemui.statusbar.pipeline.wifi.ui.view.ModernStatusBarWifiView;
 import com.android.systemui.statusbar.pipeline.wifi.ui.viewmodel.WifiViewModel;
-import com.android.systemui.statusbar.policy.NetworkTrafficMonitor.NetworkTrafficState;
+import com.android.systemui.statusbar.policy.NetworkTrafficState;
 import com.android.systemui.util.Assert;
 
 import java.util.ArrayList;
