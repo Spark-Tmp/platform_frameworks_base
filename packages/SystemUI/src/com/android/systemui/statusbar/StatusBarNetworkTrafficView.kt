@@ -32,6 +32,8 @@ import com.android.systemui.statusbar.StatusBarIconView.STATE_DOT
 import com.android.systemui.statusbar.StatusBarIconView.STATE_ICON
 import com.android.systemui.statusbar.policy.NetworkTrafficState
 
+import java.util.ArrayList
+
 /**
  * Layout class for statusbar network traffic indicator
  */
@@ -91,8 +93,8 @@ class StatusBarNetworkTrafficView @JvmOverloads constructor(
         outRect.bottom += translationY.toInt()
     }
 
-    override fun onDarkChanged(area: Rect, darkIntensity: Float, tint: Int) {
-        val areaTint: Int = DarkIconDispatcher.getTint(area, this, tint)
+    override fun onDarkChanged(areas: ArrayList<Rect>, darkIntensity: Float, tint: Int) {
+        val areaTint: Int = DarkIconDispatcher.getTint(areas, this, tint)
         trafficRate?.setTextColor(areaTint)
         dotView?.setDecorColor(areaTint)
         dotView?.setIconColor(areaTint, false)
