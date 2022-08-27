@@ -29,4 +29,12 @@
     <string name="qs_data_switch_text_2">SIM 2</string>
     <string name="qs_data_switch_changed_1">Switched data card to SIM 1.</string>
     <string name="qs_data_switch_changed_2">Switched data card to SIM 2.</string>
+
+    <!-- Icon manager -->
+    <string name="systemui_tuner_icon_manager_title">Icon manager</string>
+    <string name="misc_statusbar_items_category_title">Misc</string>
+
+    <!-- Nusantara logo -->
+    <string name="nad_logo_title">Nusantara logo</string>
+    <string name="nad_logo_summary">Let everyone know that you\'re using Nusantara when they see your screen</string>
 </resources>
