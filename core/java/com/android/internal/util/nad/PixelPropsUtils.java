@@ -19,6 +19,7 @@ package com.android.internal.util.nad;
 
 import static java.util.Map.entry;
 
+import android.app.Application;
 import android.os.Build;
 import android.util.Log;
 
@@ -111,7 +112,9 @@ public final class PixelPropsUtils {
         "com.samsung.android.waterplugin"
     );
 
-    public static void setProps(String packageName) {
+    public static void setProps(Application app) {
+        final String packageName = app.getPackageName();
+        final String processName = app.getProcessName();
         if (packageName == null) {
             return;
         }
@@ -121,9 +124,10 @@ public final class PixelPropsUtils {
         if (packagesToChange.contains(packageName)) {
             commonProps.forEach(PixelPropsUtils::setPropValue);
             ravenProps.forEach((key, value) -> {
-                if (key.equals("MODEL") && packageName.equals(PACKAGE_GMS)) {
-                     sIsGms = true;
-                     return;
+                if (key.equals("MODEL") && packageName.equals(PACKAGE_GMS)
+                    && processName.equals(PACKAGE_GMS + ".unstable")) {
+                    sIsGms = true;
+                    return;
                 } else {
                     setPropValue(key, value);
                 }
