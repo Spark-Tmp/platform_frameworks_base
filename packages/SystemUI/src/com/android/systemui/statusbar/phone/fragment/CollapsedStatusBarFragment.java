@@ -30,6 +30,7 @@ import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.ContentResolver;
 import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.os.UserHandle;
@@ -56,6 +57,7 @@ import com.android.systemui.Dumpable;
 import com.android.systemui.R;
 import com.android.systemui.battery.BatteryMeterView;
 import com.android.systemui.animation.Interpolators;
+import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.dump.DumpManager;
 import com.android.systemui.flags.FeatureFlags;
@@ -92,6 +94,7 @@ import com.android.systemui.util.CarrierConfigTracker;
 import com.android.systemui.util.CarrierConfigTracker.CarrierConfigChangedListener;
 import com.android.systemui.util.CarrierConfigTracker.DefaultDataSubscriptionChangedListener;
 import com.android.systemui.util.settings.SecureSettings;
+import com.android.systemui.util.settings.SystemSettings;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -126,8 +129,6 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
     private View mClockView;
     private View mOngoingCallChip;
 
-    private int mClockStyle;
-
     private View mNotificationIconAreaInner;
     private int mDisabled1;
     private int mDisabled2;
@@ -147,6 +148,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
     private final StatusBarHideIconsForBouncerManager mStatusBarHideIconsForBouncerManager;
     private final StatusBarIconController.DarkIconManager.Factory mDarkIconManagerFactory;
     private final SecureSettings mSecureSettings;
+    private final SystemSettings mSystemSettings;
     private final Executor mMainExecutor;
     private final DumpManager mDumpManager;
 
@@ -158,37 +160,13 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
     private Map<Startable, Startable.State> mStartableStates = new ArrayMap<>();
 
     private LinearLayout mCenterClockLayout;
+    private int mClockStyle;
     private View mRightClock;
     private boolean mShowClock = true;
     private ImageView mNadLogo;
     private boolean mShowLogo;
-    private final Handler mHandler = new Handler();
-
-    private class SettingsObserver extends ContentObserver {
-       SettingsObserver(Handler handler) {
-           super(handler);
-       }
-
-       void observe() {
-         mContentResolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUSBAR_CLOCK),
-                    false, this, UserHandle.USER_ALL);
-         mContentResolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUSBAR_CLOCK_STYLE),
-                    false, this, UserHandle.USER_ALL);
-         mContentResolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUS_BAR_LOGO),
-                    false, this, UserHandle.USER_ALL);
-       }
-
-       @Override
-       public void onChange(boolean selfChange) {
-           updateSettings(true);
-       }
-    }
-
     private SettingsObserver mSettingsObserver;
-    private ContentResolver mContentResolver;
+    private Handler mMainHandler;
 
     private SignalCallback mSignalCallback = new SignalCallback() {
         @Override
@@ -260,7 +238,10 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
             OperatorNameViewController.Factory operatorNameViewControllerFactory,
             SecureSettings secureSettings,
             @Main Executor mainExecutor,
-            DumpManager dumpManager
+            DumpManager dumpManager,
+            SystemSettings systemSettings,
+            @Main Handler mainHandler,
+            @Background Handler backgroundHandler
     ) {
         mStatusBarFragmentComponentFactory = statusBarFragmentComponentFactory;
         mOngoingCallController = ongoingCallController;
@@ -281,8 +262,11 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         mCollapsedStatusBarFragmentLogger = collapsedStatusBarFragmentLogger;
         mOperatorNameViewControllerFactory = operatorNameViewControllerFactory;
         mSecureSettings = secureSettings;
+        mSystemSettings = systemSettings;
         mMainExecutor = mainExecutor;
         mDumpManager = dumpManager;
+        mMainHandler = mainHandler;
+        mSettingsObserver = new SettingsObserver(backgroundHandler);
     }
 
     @Override
@@ -314,8 +298,6 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         }
         mDarkIconManager = mDarkIconManagerFactory.create(
                 view.findViewById(R.id.statusIcons), StatusBarLocation.HOME);
-        mContentResolver = getContext().getContentResolver();
-        mSettingsObserver = new SettingsObserver(mHandler);
         mDarkIconManager.setShouldLog(true);
         updateBlockedIcons();
         mStatusBarIconController.addIconGroup(mDarkIconManager);
@@ -343,7 +325,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         mCarrierConfigTracker.addCallback(mCarrierConfigCallback);
         mCarrierConfigTracker.addDefaultDataSubscriptionChangedListener(mDefaultDataListener);
         mSettingsObserver.observe();
-        updateSettings(false);
+        mSettingsObserver.update();
     }
 
     @VisibleForTesting
@@ -780,40 +762,74 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         }
     };
 
-    public void updateSettings(boolean animate) {
-        mShowClock = Settings.System.getIntForUser(mContentResolver,
-                Settings.System.STATUSBAR_CLOCK, 1,
-                UserHandle.USER_CURRENT) == 1;
-        mShowLogo = Settings.System.getIntForUser(mContentResolver,
-                Settings.System.STATUS_BAR_LOGO, 0,
-                UserHandle.USER_CURRENT) == 1;
-        if (!mShowClock) {
-            mClockStyle = 1;
-        } else {
-            mClockStyle = Settings.System.getIntForUser(mContentResolver,
-                    Settings.System.STATUSBAR_CLOCK_STYLE, 0,
-                    UserHandle.USER_CURRENT);
+    private class SettingsObserver extends ContentObserver {
+        private final Handler mBackgroundHandler;
+
+        SettingsObserver(Handler backgroundHandler) {
+            super(backgroundHandler);
+            mBackgroundHandler = backgroundHandler;
         }
-        updateClockStyle(animate);
-        if (mNotificationIconAreaInner != null) {
-            if (mShowLogo) {
-                if (mNotificationIconAreaInner.getVisibility() == View.VISIBLE) {
-                    animateShow(mNadLogo, animate);
+
+        void observe() {
+            mSystemSettings.registerContentObserverForUser(Settings.System.STATUSBAR_CLOCK, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.STATUSBAR_CLOCK_STYLE, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.STATUS_BAR_LOGO, this, UserHandle.USER_ALL);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            switch (uri.getLastPathSegment()) {
+                case Settings.System.STATUSBAR_CLOCK:
+                case Settings.System.STATUSBAR_CLOCK_STYLE:
+                case Settings.System.STATUS_BAR_LOGO:
+                    updateSettings(true);
+                break;
+       }
+    }
+
+        void update() {
+            mBackgroundHandler.post(() -> {
+                updateSettings(false);
+        });
+    }
+
+        public void updateSettings(boolean animate) {
+            mShowClock = mSystemSettings.getIntForUser(
+                Settings.System.STATUSBAR_CLOCK, 1, UserHandle.USER_CURRENT) == 1;
+            mShowLogo = mSystemSettings.getIntForUser(
+                Settings.System.STATUS_BAR_LOGO, 0, UserHandle.USER_CURRENT) == 1;
+
+            mMainHandler.post(() -> {
+                if (!mShowClock) {
+                mClockStyle = 1;
+                } else {
+                    mClockStyle = mSystemSettings.getIntForUser(
+                    Settings.System.STATUSBAR_CLOCK_STYLE, 0, UserHandle.USER_CURRENT);
                 }
-            } else {
-                animateHide(mNadLogo, animate, false);
-            }
+                updateClockStyle(animate);
+                if (mNotificationIconAreaInner != null) {
+                    if (mShowLogo) {
+                        if (mNotificationIconAreaInner.getVisibility() == View.VISIBLE) {
+                        animateShow(mNadLogo, animate);
+                        }
+                    } else {
+                        animateHide(mNadLogo, animate, false);
+                    }
+                }
+            });
         }
     }
 
     private void updateClockStyle(boolean animate) {
-        if (mClockStyle == 1 || mClockStyle == 2) {
-            animateHide(mClockView, animate, false);
-        } else {
-            if (((Clock)mClockView).isClockVisible()) {
-                 animateShow(mClockView, animate);
+        mMainHandler.post(() -> {
+            if (mClockStyle == 1 || mClockStyle == 2) {
+                animateHide(mClockView, animate, false);
+            } else {
+                if (((Clock)mClockView).isClockVisible()) {
+                    animateShow(mClockView, animate);
+                }
             }
-        }
+        });
     }
 
     @Override
