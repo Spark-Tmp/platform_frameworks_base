@@ -23,7 +23,7 @@
     <bool name="doze_long_press_proximity_check">false</bool>
 
     <!-- Udfps vendor code -->
-    <integer name="config_udfpsVendorCode">-1</integer>
+    <integer name="config_udfps_vendor_code">0</integer>
 
     <!-- Whether to pulse onFingerDown actions instead
         of waking the screen while the screen is off or in lpm. -->
