@@ -19,8 +19,6 @@ package com.android.systemui.biometrics;
 import static android.hardware.biometrics.BiometricFingerprintConstants.FINGERPRINT_ACQUIRED_GOOD;
 import static android.hardware.biometrics.BiometricOverlayConstants.REASON_AUTH_KEYGUARD;
 
-import static android.hardware.biometrics.BiometricFingerprintConstants.FINGERPRINT_ACQUIRED_VENDOR;
-
 import static com.android.internal.util.Preconditions.checkNotNull;
 import static com.android.systemui.classifier.Classifier.LOCK_ICON;
 import static com.android.systemui.classifier.Classifier.UDFPS_AUTHENTICATION;
@@ -31,23 +29,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.ContentObserver;
 import android.graphics.Point;
-import android.hardware.display.AmbientDisplayConfiguration;
 import android.hardware.biometrics.BiometricFingerprintConstants;
 import android.hardware.display.DisplayManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.IUdfpsOverlayController;
 import android.hardware.fingerprint.IUdfpsOverlayControllerCallback;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.Process;
 import android.os.Trace;
-import android.os.UserHandle;
 import android.os.VibrationAttributes;
 import android.os.VibrationEffect;
-import android.provider.Settings;
 import android.util.Log;
 import android.util.RotationUtils;
 import android.view.LayoutInflater;
@@ -61,7 +54,6 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.LatencyTracker;
 import com.android.keyguard.FaceAuthApiRequestReason;
 import com.android.keyguard.KeyguardUpdateMonitor;
-import com.android.systemui.R;
 import com.android.systemui.animation.ActivityLaunchAnimator;
 import com.android.systemui.biometrics.dagger.BiometricsBackground;
 import com.android.systemui.dagger.SysUISingleton;
@@ -81,7 +73,6 @@ import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.util.concurrency.DelayableExecutor;
 import com.android.systemui.util.concurrency.Execution;
-import com.android.systemui.util.settings.SecureSettings;
 import com.android.systemui.util.time.SystemClock;
 
 import java.util.HashSet;
@@ -112,8 +103,6 @@ public class UdfpsController implements DozeReceiver {
 
     // Minimum required delay between consecutive touch logs in milliseconds.
     private static final long MIN_TOUCH_LOG_INTERVAL = 50;
-
-    private static final String PULSE_ACTION = "com.android.systemui.doze.pulse";
 
     private final Context mContext;
     private final Execution mExecution;
@@ -176,11 +165,6 @@ public class UdfpsController implements DozeReceiver {
     private boolean mOnFingerDown;
     private boolean mAttemptedToDismissKeyguard;
     private final Set<Callback> mCallbacks = new HashSet<>();
-    private final int mUdfpsVendorCode;
-
-    private final AmbientDisplayConfiguration mAmbientDisplayConfiguration;
-    private final SecureSettings mSecureSettings;
-    private boolean mScreenOffUdfpsEnabled;
 
     @VisibleForTesting
     public static final VibrationAttributes UDFPS_VIBRATION_ATTRIBUTES =
@@ -248,7 +232,7 @@ public class UdfpsController implements DozeReceiver {
         @Override
         public void onAcquired(
                 int sensorId,
-                @BiometricFingerprintConstants.FingerprintAcquired int acquiredInfo, int vendorCode
+                @BiometricFingerprintConstants.FingerprintAcquired int acquiredInfo
         ) {
             if (BiometricFingerprintConstants.shouldDisableUdfpsDisplayMode(acquiredInfo)) {
                 boolean acquiredGood = acquiredInfo == FINGERPRINT_ACQUIRED_GOOD;
@@ -267,26 +251,7 @@ public class UdfpsController implements DozeReceiver {
                         mOverlay.onAcquiredGood();
                     }
                 });
-            } else {
-                final boolean isAodEnabled = mAmbientDisplayConfiguration.alwaysOnEnabled(UserHandle.USER_CURRENT);
-                final boolean isShowingAmbientDisplay = mStatusBarStateController.isDozing() && mScreenOn;
-                boolean acquiredVendor = acquiredInfo == FINGERPRINT_ACQUIRED_VENDOR;
-                if (!acquiredVendor || (!mStatusBarStateController.isDozing() && mScreenOn)) {
-                    return;
-                }
-                if ((mScreenOffUdfpsEnabled && !mScreenOn) || (isAodEnabled && isShowingAmbientDisplay)) {
-                    if (vendorCode == mUdfpsVendorCode) {
-                        if (mContext.getResources().getBoolean(R.bool.config_pulseOnFingerDown)) {
-                            mContext.sendBroadcastAsUser(
-                                    new Intent(PULSE_ACTION), new UserHandle(UserHandle.USER_CURRENT));
-                        } else {
-                            mPowerManager.wakeUp(mSystemClock.uptimeMillis(),
-                                    PowerManager.WAKE_REASON_GESTURE, TAG);
-                            onAodInterrupt(0, 0, 0, 0);
-                        }
-                   }
-               }
-           }
+            }
         }
 
         @Override
@@ -640,7 +605,6 @@ public class UdfpsController implements DozeReceiver {
             @NonNull LatencyTracker latencyTracker,
             @NonNull ActivityLaunchAnimator activityLaunchAnimator,
             @NonNull Optional<AlternateUdfpsTouchProvider> alternateTouchProvider,
-            @NonNull SecureSettings secureSettings,
             @BiometricsBackground Executor biometricsExecutor) {
         mContext = context;
         mExecution = execution;
@@ -695,26 +659,6 @@ public class UdfpsController implements DozeReceiver {
 
         udfpsHapticsSimulator.setUdfpsController(this);
         udfpsShell.setUdfpsOverlayController(mUdfpsOverlayController);
-        mUdfpsVendorCode = mContext.getResources().getInteger(R.integer.config_udfps_vendor_code);
-        mAmbientDisplayConfiguration = new AmbientDisplayConfiguration(mContext);
-        mSecureSettings = secureSettings;
-        updateScreenOffUdfpsState();
-        mSecureSettings.registerContentObserver(Settings.Secure.SCREEN_OFF_UDFPS_ENABLED,
-            new ContentObserver(mainHandler) {
-                @Override
-                public void onChange(boolean selfChange, Uri uri) {
-                    if (uri.getLastPathSegment().equals(Settings.Secure.SCREEN_OFF_UDFPS_ENABLED)) {
-                        updateScreenOffUdfpsState();
-                    }
-                }
-            }
-        );
-    }
-
-    private void updateScreenOffUdfpsState() {
-        boolean isSupported = mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_supportsScreenOffUdfps);
-        mScreenOffUdfpsEnabled = isSupported && mSecureSettings.getInt(Settings.Secure.SCREEN_OFF_UDFPS_ENABLED, 0) == 1;
     }
 
     /**

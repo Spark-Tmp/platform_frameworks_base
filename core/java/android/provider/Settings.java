@@ -11576,15 +11576,6 @@ public final class Settings {
         public static final String GESTURE_NAVBAR_LENGTH_MODE = "gesture_navbar_length_mode";
 
         /**
-         * Whether UDFPS is active while the screen is off.
-         *
-         * <p>1 if true, 0 or unset otherwise.
-         *
-         * @hide
-         */
-        public static final String SCREEN_OFF_UDFPS_ENABLED = "screen_off_udfps_enabled";
-
-        /**
          * Whether touch hovering is enabled on supported hardware
          * @hide
          */
