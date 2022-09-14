@@ -275,6 +275,13 @@ public class QSTileHost implements QSHost, Tunable, PluginListener<QSFactory>, D
         return mTileSpecs.indexOf(spec);
     }
 
+    public void reloadAllTiles() {
+        // Force remove and recreate of all tiles.
+        String value = mTunerService.getValue(TILES_SETTING);
+        onTuningChanged(TILES_SETTING, "");
+        onTuningChanged(TILES_SETTING, value);
+    }
+
     /**
      * Whenever the Secure Setting keeping track of the current tiles changes (or upon start) this
      * will be called with the new value of the setting.

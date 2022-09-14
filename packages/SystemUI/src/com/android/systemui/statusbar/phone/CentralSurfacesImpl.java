@@ -1993,6 +1993,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
             mSystemSettings.registerContentObserverForUser(Settings.System.DOUBLE_TAP_SLEEP_GESTURE, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.LESS_BORING_HEADS_UP, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.RETICKER_STATUS, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.QS_TILE_TINT, this, UserHandle.USER_ALL);
         }
 
         @Override
@@ -2012,6 +2013,9 @@ public class CentralSurfacesImpl extends CoreStartable implements
                     break;
                 case Settings.System.RETICKER_STATUS:
                     setUseLessBoringHeadsUp();
+                    break;
+                case Settings.System.QS_TILE_TINT:
+                    mQSPanelController.getHost().reloadAllTiles();
                     break;
             }
         }
