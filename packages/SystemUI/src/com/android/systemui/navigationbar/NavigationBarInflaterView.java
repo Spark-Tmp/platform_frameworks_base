@@ -91,7 +91,7 @@ public class NavigationBarInflaterView extends FrameLayout
     private static final String ABSOLUTE_SUFFIX = "A";
     private static final String ABSOLUTE_VERTICAL_CENTERED_SUFFIX = "C";
 
-    private static final String OVERLAY_NAVIGATION_FULL_SCREEN = "com.krypton.overlay.systemui.navbar.gestural";
+    private static final String OVERLAY_NAVIGATION_FULL_SCREEN = "com.nusantara.overlay.systemui.navbar.gestural";
 
     protected LayoutInflater mLayoutInflater;
     protected LayoutInflater mLandscapeInflater;
