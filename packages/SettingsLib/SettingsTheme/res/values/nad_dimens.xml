@@ -18,5 +18,11 @@
 
     <!-- Top Level Background Radius-->
     <dimen name="nad_top_bg_radius">28dp</dimen>
+    
+    <!-- Border Radius -->
+    <dimen name="nad_border_radius">3dp</dimen>
+    
+    <!-- Card Separator -->
+    <dimen name="nad_card_separator">2dp</dimen>
 
 </resources>
