@@ -65,12 +65,13 @@ import kotlinx.coroutines.withContext
 class NetworkTrafficMonitor @Inject constructor(
     private val wakefulnessLifecycle: WakefulnessLifecycle,
     private val systemSettings: SystemSettings,
-    private val coroutineScope: CoroutineScope,
     context: Context,
     userTracker: UserTracker
 ) : UserTracker.Callback {
 
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     private val stateMutex = Mutex()
 

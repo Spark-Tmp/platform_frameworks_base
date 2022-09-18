@@ -150,7 +150,6 @@ import dagger.Provides;
             UserModule.class,
             UtilModule.class,
             WalletModule.class,
-            SystemUIKotlinModule.class,
             OmniModule.class
         },
         subcomponents = {
