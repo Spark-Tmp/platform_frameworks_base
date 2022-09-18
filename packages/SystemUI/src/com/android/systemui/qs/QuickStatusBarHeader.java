@@ -34,6 +34,7 @@ import android.view.DisplayCutout;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Gravity;
+import android.graphics.drawable.Drawable;
 import android.view.WindowInsets;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -41,9 +42,10 @@ import android.widget.Space;
 import android.widget.TextClock; 
 import android.widget.AnalogClock;
 
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import android.os.UserHandle;
 
 import com.android.internal.policy.SystemBarUtils;
 import com.android.settingslib.Utils;
@@ -127,6 +129,8 @@ public class QuickStatusBarHeader extends FrameLayout implements
     private boolean mUseCombinedQSHeader;
     private final ActivityStarter mActivityStarter;
     private final Vibrator mVibrator;
+    
+    private int colorActive, colorInactive, colorActiveAccent, colorActiveAlpha, colorInactiveAlpha, colorNonActive;
 
     public QuickStatusBarHeader(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -183,7 +187,28 @@ public class QuickStatusBarHeader extends FrameLayout implements
         // QS will always show the estimate, and BatteryMeterView handles the case where
         // it's unavailable or charging
         mBatteryRemainingIcon.setPercentShowMode(BatteryMeterView.MODE_ESTIMATE);
+        
+        boolean qsTileTint = android.provider.Settings.System.getIntForUser(mContext.getContentResolver(),
+                android.provider.Settings.System.QS_TILE_TINT, 0, UserHandle.USER_CURRENT) == 1;
+                
+        //Identify color source
+        colorActive = Utils.getColorAttrDefaultColor(mContext,
+            com.android.internal.R.attr.colorAccentPrimary);
+        colorInactive = Utils.getColorAttrDefaultColor(mContext,
+            R.attr.offStateColor);
+        colorActiveAccent = Utils.getColorAttrDefaultColor(mContext,
+            com.android.internal.R.attr.colorAccent);
+        colorActiveAlpha = Utils.applyAlpha(0.2f, Utils.getColorAttrDefaultColor(mContext, android.R.attr.colorAccent));
+        colorInactiveAlpha = Utils.applyAlpha(0.2f, Utils.getColorAttrDefaultColor(mContext, R.attr.offStateColor));
+        colorNonActive =
+            Utils.getColorAttrDefaultColor(mContext, com.android.internal.R.attr.textColorPrimaryInverse);
 
+        Drawable background = mJrClock.getBackground();
+        if (qsTileTint) {
+        	background.setAlpha(51);
+        }
+        mJrClock.setTextColor(qsTileTint ? colorActiveAccent : colorNonActive);
+        
         mIconsAlphaAnimatorFixed = new TouchAnimator.Builder()
                 //.addFloat(mIconContainer, "alpha", 0, 1)
                 .addFloat(mBatteryRemainingIcon, "alpha", 0, 1)
@@ -393,6 +418,14 @@ public class QuickStatusBarHeader extends FrameLayout implements
                             //mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
                         }
                         mJrBaseContainer.setBackgroundResource(R.drawable.qs_clock_bg);
+                        Drawable mBgClockExpand = mJrBaseContainer.getBackground();
+                        boolean qsTileTint = android.provider.Settings.System.getIntForUser(mContext.getContentResolver(),
+                            android.provider.Settings.System.QS_TILE_TINT, 0, UserHandle.USER_CURRENT) == 1;
+             
+                        if (mBgClockExpand != null) {
+                            mBgClockExpand.setTint(qsTileTint ? colorInactiveAlpha : colorInactive);
+                        }
+
                     }
 
                     @Override

@@ -51,6 +51,11 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
 
+import android.graphics.drawable.Drawable
+import android.os.UserHandle
+import com.android.settingslib.Utils
+import android.provider.Settings.System
+
 /**
  * Manages [FooterActionsView] behaviour, both when it's placed in QS or QQS (split shade).
  * Main difference between QS and QQS behaviour is condition when buttons should be visible,
@@ -144,6 +149,16 @@ internal class FooterActionsController @Inject constructor(
     private val powerMenuLite: View = view.findViewById(R.id.pm_lite)
     private val multiUserSwitchController = multiUserSwitchControllerFactory.create(view)
 
+    private val colorActiveAccent = Utils.getColorAttrDefaultColor(context,
+        com.android.internal.R.attr.colorAccent)
+    private val colorNonActive = Utils.getColorAttrDefaultColor(context,
+        com.android.internal.R.attr.textColorPrimaryInverse)
+    
+    private val qsTileTint: Boolean = System.getIntForUser(
+            context.contentResolver,
+            System.QS_TILE_TINT, 0, UserHandle.USER_CURRENT
+    ) == 1
+
     @VisibleForTesting
     internal val securityFootersSeparator = View(context).apply { visibility = View.GONE }
 
@@ -218,7 +233,14 @@ internal class FooterActionsController @Inject constructor(
     public override fun onViewAttached() {
         carrierTextManager.setListening(carrierTextCallback)
         globalActionsDialog = globalActionsDialogProvider.get()
-        if (showPMLiteButton) {
+        if (showPMLiteButton) {      	
+            val background: Drawable = powerMenuLite.getBackground()
+            if (qsTileTint) {
+                //background.setColorFilter(colorActiveAccent)
+                background.setAlpha(51)
+            } //else {
+                //background.setColorFilter(colorNonActive)
+            //}
             powerMenuLite.visibility = View.VISIBLE
             powerMenuLite.setOnClickListener(onClickListener)
         } else {

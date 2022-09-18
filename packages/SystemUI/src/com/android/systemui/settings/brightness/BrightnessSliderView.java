@@ -17,6 +17,7 @@
 package com.android.systemui.settings.brightness;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableWrapper;
@@ -25,11 +26,16 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import android.os.UserHandle;
+import android.provider.Settings.System;
+import com.android.settingslib.Utils;
 
 import com.android.settingslib.RestrictedLockUtils;
 import com.android.systemui.Gefingerpoken;
@@ -43,10 +49,14 @@ public class BrightnessSliderView extends LinearLayout {
 
     @NonNull
     private ToggleSeekBar mSlider;
+    private ImageView mAutoIcon;
+    
+    private int colorActive, colorInactive, colorActiveAccent, colorActiveAlpha, colorInactiveAlpha, colorNonActive;
+    
     private DispatchTouchEventListener mListener;
     private Gefingerpoken mOnInterceptListener;
     @Nullable
-    private Drawable mProgressDrawable;
+    private Drawable mProgressDrawable, mIconProgressBrightness, mBackgroundSlider;
     private float mScale = 1f;
 
     public BrightnessSliderView(Context context) {
@@ -62,19 +72,52 @@ public class BrightnessSliderView extends LinearLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
         setLayerType(LAYER_TYPE_HARDWARE, null);
+        
+        boolean qsTileTint = System.getIntForUser(getContext().getContentResolver(),
+                System.QS_TILE_TINT, 0, UserHandle.USER_CURRENT) == 1;
 
         mSlider = requireViewById(R.id.slider);
+        mAutoIcon = findViewById(R.id.auto_brightness_icon);
         mSlider.setAccessibilityLabel(getContentDescription().toString());
+        
+        //Identify color source
+        colorActive = Utils.getColorAttrDefaultColor(getContext(),
+            com.android.internal.R.attr.colorAccentPrimary);
+        colorActiveAccent = Utils.getColorAttrDefaultColor(getContext(),
+            com.android.internal.R.attr.colorAccent);
+        colorInactive = Utils.getColorAttrDefaultColor(getContext(), R.attr.offStateColor);
+        colorActiveAlpha = Utils.applyAlpha(0.2f, Utils.getColorAttrDefaultColor(getContext(), android.R.attr.colorAccent));
+        colorInactiveAlpha = Utils.applyAlpha(0.2f, Utils.getColorAttrDefaultColor(getContext(), R.attr.offStateColor));
+        colorNonActive = Utils.getColorAttrDefaultColor(getContext(), com.android.internal.R.attr.textColorPrimaryInverse);
+
+        // Icon Auto Brightness
+        Drawable background = mAutoIcon.getBackground();
+        mAutoIcon.setColorFilter(qsTileTint ? colorActiveAccent : colorNonActive);
+        background.setAlpha(qsTileTint ? 51 : 255);
 
         // Finds the progress drawable. Assumes brightness_progress_drawable.xml
         try {
             LayerDrawable progress = (LayerDrawable) mSlider.getProgressDrawable();
             DrawableWrapper progressSlider = (DrawableWrapper) progress
                     .findDrawableByLayerId(android.R.id.progress);
+             
             LayerDrawable actualProgressSlider = (LayerDrawable) progressSlider.getDrawable();
             mProgressDrawable = actualProgressSlider.findDrawableByLayerId(R.id.slider_foreground);
+            mIconProgressBrightness = actualProgressSlider.findDrawableByLayerId(R.id.slider_icon);
+            mBackgroundSlider =  progress.findDrawableByLayerId(android.R.id.background);
         } catch (Exception e) {
             // Nothing to do, mProgressDrawable will be null.
+        }
+        if (qsTileTint && mProgressDrawable != null) {
+        	mProgressDrawable.setTintList(ColorStateList.valueOf(colorActiveAlpha));
+        }
+        if (mBackgroundSlider != null) {
+        	mBackgroundSlider.setTintList(qsTileTint ? ColorStateList.valueOf(colorInactiveAlpha) :
+                	ColorStateList.valueOf(colorInactive));
+        }
+        if (mIconProgressBrightness != null) {
+        	mIconProgressBrightness.setTintList(qsTileTint ? ColorStateList.valueOf(colorActiveAccent) : 
+                	ColorStateList.valueOf(colorNonActive));
         }
     }
 
