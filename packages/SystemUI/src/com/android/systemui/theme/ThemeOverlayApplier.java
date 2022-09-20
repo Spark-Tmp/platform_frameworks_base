@@ -140,6 +140,7 @@ public class ThemeOverlayApplier implements Dumpable {
     private final Executor mBgExecutor;
     private final String mLauncherPackage;
     private final String mThemePickerPackage;
+    private boolean mIsBlackTheme, mIsNusantaraClearTheme, mIsSolarizedTheme, mIsNightMode;
 
     @Inject
     public ThemeOverlayApplier(OverlayManager overlayManager,
@@ -236,6 +237,52 @@ public class ThemeOverlayApplier implements Dumpable {
         });
     }
 
+    public void setTheme(int theme) {
+        mIsBlackTheme = theme == 1;
+        mIsNusantaraClearTheme = theme == 2;
+        mIsSolarizedTheme = theme == 3;
+        applyBlackTheme(mIsBlackTheme);
+        applyNusantaraClearTheme(mIsNusantaraClearTheme);
+        applySolarizedTheme(mIsSolarizedTheme);
+    }
+
+    public void applyBlackTheme(boolean enabled) {
+        mBgExecutor.execute(() -> {
+            try {
+                mOverlayManager.setEnabled("com.android.system.theme.black",
+                        enabled, UserHandle.SYSTEM);
+            } catch (SecurityException | IllegalStateException e) {
+                Log.e(TAG, "setEnabled failed", e);
+            }
+        });
+    }
+
+    public void applyNusantaraClearTheme(boolean enabled) {
+        mBgExecutor.execute(() -> {
+            try {
+                mOverlayManager.setEnabled("com.android.system.theme.nusantara.clear",
+                        enabled, UserHandle.SYSTEM);
+                mOverlayManager.setEnabled("com.android.systemui.theme.nusantara.clear",
+                        enabled, UserHandle.SYSTEM);
+                mOverlayManager.setEnabled("com.android.settings.theme.nusantara.clear",
+                        enabled, UserHandle.SYSTEM);
+            } catch (SecurityException | IllegalStateException e) {
+                Log.e(TAG, "setEnabled failed", e);
+            }
+        });
+    }
+
+    public void applySolarizedTheme(boolean enabled) {
+        mBgExecutor.execute(() -> {
+            try {
+                mOverlayManager.setEnabled("com.android.system.theme.solarized",
+                        enabled, UserHandle.SYSTEM);
+            } catch (SecurityException | IllegalStateException e) {
+                Log.e(TAG, "setEnabled failed", e);
+            }
+        });
+    }
+
     @VisibleForTesting
     protected OverlayManagerTransaction.Builder getTransactionBuilder() {
         return new OverlayManagerTransaction.Builder();
@@ -248,6 +295,10 @@ public class ThemeOverlayApplier implements Dumpable {
         if (DEBUG) {
             Log.d(TAG, "setEnabled: " + identifier.getPackageName() + " category: "
                     + category + ": " + enabled);
+        }
+
+        if (OVERLAY_CATEGORY_SYSTEM_PALETTE.equals(category)) {
+            enabled = enabled && !mIsBlackTheme && !mIsNusantaraClearTheme && !mIsSolarizedTheme;
         }
 
         OverlayInfo overlayInfo = mOverlayManager.getOverlayInfo(identifier,

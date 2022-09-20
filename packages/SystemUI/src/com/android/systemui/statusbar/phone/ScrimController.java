@@ -24,7 +24,11 @@ import android.animation.ValueAnimator;
 import android.annotation.IntDef;
 import android.app.AlarmManager;
 import android.graphics.Color;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
 import android.os.Handler;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.os.Trace;
 import android.util.Log;
 import android.util.MathUtils;
@@ -61,6 +65,7 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.util.AlarmTimeout;
 import com.android.systemui.util.wakelock.DelayedWakeLock;
 import com.android.systemui.util.wakelock.WakeLock;
+import com.android.systemui.util.settings.SecureSettings;
 
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
@@ -175,6 +180,8 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
      */
     public static final float BUSY_SCRIM_ALPHA = 1f;
 
+    public static final float BUSY_SCRIM_ALPHA_2 = 0.8f;
+
     /**
      * Scrim opacity that can have text on top.
      */
@@ -259,6 +266,8 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
     private boolean mWakeLockHeld;
     private boolean mKeyguardOccluded;
 
+    private final SecureSettings mSecureSettings;
+
     @Inject
     public ScrimController(
             LightBarController lightBarController,
@@ -273,9 +282,9 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
             @Main Executor mainExecutor,
             ScreenOffAnimationController screenOffAnimationController,
             KeyguardUnlockAnimationController keyguardUnlockAnimationController,
-            StatusBarKeyguardViewManager statusBarKeyguardViewManager) {
+            StatusBarKeyguardViewManager statusBarKeyguardViewManager, SecureSettings secureSettings) {
         mScrimStateListener = lightBarController::setScrimState;
-        mDefaultScrimAlpha = BUSY_SCRIM_ALPHA;
+        mSecureSettings = secureSettings;
 
         mKeyguardStateController = keyguardStateController;
         mDarkenWhileDragging = !mKeyguardStateController.canDismissLockScreen();
@@ -313,6 +322,13 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         });
         mColors = new GradientColors();
         mBehindColors = new GradientColors();
+        int isNusantaraClearTheme = mSecureSettings.getInt(Settings.Secure.SYSTEM_THEME, 0);
+
+        if (isNusantaraClearTheme == 2) {
+            mDefaultScrimAlpha = BUSY_SCRIM_ALPHA_2;
+        } else {
+            mDefaultScrimAlpha = BUSY_SCRIM_ALPHA;
+        }
     }
 
     /**
@@ -1117,7 +1133,18 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
     }
 
     private void updateScrimColor(View scrim, float alpha, int tint) {
-        alpha = Math.max(0, Math.min(1.0f, alpha));
+    	int isNusantaraClearTheme = mSecureSettings.getInt(Settings.Secure.SYSTEM_THEME, 0);
+        if (isNusantaraClearTheme == 2) {
+            alpha = Math.max(0, Math.min(0.8f, alpha));
+            mNotificationsScrim.setRenderEffect(RenderEffect.createBlurEffect(
+            100f, //radius X
+            100f, //Radius Y
+            Shader.TileMode.CLAMP));// X=CLAMP,DECAL,MIRROR,REPEAT
+        } else {
+            alpha = Math.max(0, Math.min(1.0f, alpha));
+            mNotificationsScrim.setRenderEffect(null);
+        }
+    
         if (scrim instanceof ScrimView) {
             ScrimView scrimView = (ScrimView) scrim;
             if (DEBUG_MODE) {
