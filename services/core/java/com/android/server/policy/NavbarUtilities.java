@@ -37,9 +37,10 @@ public class NavbarUtilities {
     public static final int KEY_ACTION_FLASHLIGHT = 6;
     public static final int KEY_ACTION_CLEAR_NOTIFICATIONS = 7;
     public static final int KEY_ACTION_SCREEN_OFF = 8;
-    public static final int KEY_ACTION_POWER_MENU = 9;
-    public static final int KEY_ACTION_CUSTOM_APP = 10;
-    public static final int KEY_ACTION_RINGER_MODES = 11;
+    public static final int KEY_ACTION_CUSTOM_APP = 9;
+    public static final int KEY_ACTION_RINGER_MODES = 10;
+    public static final int KEY_ACTION_SCREENSHOT = 11;
+    public static final int KEY_ACTION_PARTIAL_SCREENSHOT = 12;
 
     // Special values, used internal only.
     public static final int KEY_ACTION_HOME = 100;
@@ -111,9 +112,10 @@ public class NavbarUtilities {
             KEY_ACTION_FLASHLIGHT,
             KEY_ACTION_CLEAR_NOTIFICATIONS,
             KEY_ACTION_SCREEN_OFF,
-            KEY_ACTION_POWER_MENU,
             KEY_ACTION_CUSTOM_APP,
-            KEY_ACTION_RINGER_MODES
+            KEY_ACTION_RINGER_MODES,
+            KEY_ACTION_SCREENSHOT,
+            KEY_ACTION_PARTIAL_SCREENSHOT
     };
 
     /**

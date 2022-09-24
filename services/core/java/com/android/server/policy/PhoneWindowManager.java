@@ -6566,8 +6566,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
      * Send custom KeyEvent.
      * @param keyCode The key code for the new KeyEvent.
      */
-    private void triggerVirtualKeypress(final int keyCode, final boolean repeat,
-                                        final boolean longPress) {
+    private void triggerVirtualKeypress(final int keyCode, final boolean repeat) {
         final InputManager im = InputManager.getInstance();
 
         final Runnable r = new Runnable() {
@@ -6575,17 +6574,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             public void run() {
                 long now = SystemClock.uptimeMillis();
 
-                final KeyEvent downEvent;
-                if (longPress) {
-                    downEvent = new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
-                            keyCode, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
-                            KeyEvent.FLAG_FROM_SYSTEM |
-                                    KeyEvent.FLAG_LONG_PRESS, InputDevice.SOURCE_CUSTOM);
-                } else {
-                    downEvent = new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
-                            keyCode, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
-                            KeyEvent.FLAG_FROM_SYSTEM, InputDevice.SOURCE_CUSTOM);
-                }
+                final KeyEvent downEvent = new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
+                        keyCode, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
+                        KeyEvent.FLAG_FROM_SYSTEM, InputDevice.SOURCE_CUSTOM);
                 final KeyEvent upEvent = KeyEvent.changeAction(downEvent, KeyEvent.ACTION_UP);
 
                 im.injectInputEvent(downEvent, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
@@ -6613,7 +6604,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 launchHomeFromHotKey(DEFAULT_DISPLAY);
                 break;
             case NavbarUtilities.KEY_ACTION_MENU:
-                triggerVirtualKeypress(KeyEvent.KEYCODE_MENU, false, false);
+                triggerVirtualKeypress(KeyEvent.KEYCODE_MENU, false);
                 break;
             case NavbarUtilities.KEY_ACTION_BACK:
             case NavbarUtilities.KEY_ACTION_APP_SWITCH:
@@ -6628,7 +6619,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             case NavbarUtilities.KEY_ACTION_LAST_APP:
                 awakenDreams();
                 // TODO> handle no recent apps
-                triggerVirtualKeypress(KeyEvent.KEYCODE_APP_SWITCH, !mRecentsVisible, false);
+                triggerVirtualKeypress(KeyEvent.KEYCODE_APP_SWITCH, !mRecentsVisible);
                 break;
             case NavbarUtilities.KEY_ACTION_FLASHLIGHT:
                 ActionUtils.toggleCameraFlash();
@@ -6638,9 +6629,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 break;
             case NavbarUtilities.KEY_ACTION_SCREEN_OFF:
                 ActionUtils.switchScreenOff(mContext);
-                break;
-            case NavbarUtilities.KEY_ACTION_POWER_MENU:
-                triggerVirtualKeypress(KeyEvent.KEYCODE_POWER, false, true);
                 break;
             case NavbarUtilities.KEY_ACTION_CUSTOM_APP:
                 switch (keyCode) {
@@ -6664,6 +6652,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             case NavbarUtilities.KEY_ACTION_RINGER_MODES:
                 ActionUtils.toggleRingerModes(mContext);
                 break;
+            case NavbarUtilities.KEY_ACTION_SCREENSHOT:
+                ActionUtils.takeScreenshot(true);
+                break;
+            case NavbarUtilities.KEY_ACTION_PARTIAL_SCREENSHOT:
+                ActionUtils.takeScreenshot(false);
+                break;
         }
     }
 
@@ -6680,8 +6674,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 launchHomeFromHotKey(DEFAULT_DISPLAY);
                 break;
             case NavbarUtilities.KEY_ACTION_MENU:
-                triggerVirtualKeypress(KeyEvent.KEYCODE_MENU, false, false);
-                break;
+            triggerVirtualKeypress(KeyEvent.KEYCODE_MENU, false);
+            break;
             case NavbarUtilities.KEY_ACTION_BACK:
             case NavbarUtilities.KEY_ACTION_APP_SWITCH:
                 toggleRecentApps();
@@ -6695,7 +6689,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             case NavbarUtilities.KEY_ACTION_LAST_APP:
                 awakenDreams();
                 // TODO> handle no recent apps
-                triggerVirtualKeypress(KeyEvent.KEYCODE_APP_SWITCH, !mRecentsVisible, false);
+                triggerVirtualKeypress(KeyEvent.KEYCODE_APP_SWITCH, !mRecentsVisible);
                 break;
             case NavbarUtilities.KEY_ACTION_FLASHLIGHT:
                 ActionUtils.toggleCameraFlash();
@@ -6705,9 +6699,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 break;
             case NavbarUtilities.KEY_ACTION_SCREEN_OFF:
                 ActionUtils.switchScreenOff(mContext);
-                break;
-            case NavbarUtilities.KEY_ACTION_POWER_MENU:
-                triggerVirtualKeypress(KeyEvent.KEYCODE_POWER, false, true);
                 break;
             case NavbarUtilities.KEY_ACTION_CUSTOM_APP:
                 switch (keyCode) {
@@ -6731,6 +6722,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             case NavbarUtilities.KEY_ACTION_RINGER_MODES:
                 ActionUtils.toggleRingerModes(mContext);
                 break;
+            case NavbarUtilities.KEY_ACTION_SCREENSHOT:
+                ActionUtils.takeScreenshot(true);
+                break;
+            case NavbarUtilities.KEY_ACTION_PARTIAL_SCREENSHOT:
+                ActionUtils.takeScreenshot(false);
+                break;
         }
     }
 
@@ -6745,7 +6742,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 break;
             case KeyEvent.KEYCODE_BACK:
             case KeyEvent.KEYCODE_MENU:
-                triggerVirtualKeypress(keyCode, false, false);
+                triggerVirtualKeypress(keyCode, false);
                 break;
             case KeyEvent.KEYCODE_ASSIST:
                 launchAssistAction(null, -1, -1, AssistUtils.INVOCATION_TYPE_UNKNOWN);
