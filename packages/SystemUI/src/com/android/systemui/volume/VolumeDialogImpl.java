@@ -2869,7 +2869,7 @@ public class VolumeDialogImpl implements VolumeDialog,
             mVolumePanelOnLeft = Settings.System.getIntForUser(
                     mContext.getContentResolver(),
                     Settings.System.VOLUME_PANEL_ON_LEFT,
-                    1, UserHandle.USER_CURRENT) == 1;
+                    0, UserHandle.USER_CURRENT) == 1;
             mShowAppVolume = Settings.System.getIntForUser(
                     mContext.getContentResolver(),
                     Settings.System.SHOW_APP_VOLUME,
