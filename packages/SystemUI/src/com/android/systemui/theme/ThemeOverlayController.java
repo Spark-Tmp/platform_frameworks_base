@@ -105,6 +105,7 @@ import javax.inject.Inject;
 public class ThemeOverlayController extends CoreStartable implements Dumpable {
     protected static final String TAG = "ThemeOverlayController";
     private static final boolean DEBUG = true;
+    public static boolean mNightMode;
 
     protected static final int NEUTRAL = 0;
     protected static final int ACCENT = 1;
@@ -681,7 +682,7 @@ public class ThemeOverlayController extends CoreStartable implements Dumpable {
                             Collectors.joining(", ")));
         }
 
-        boolean nightMode = (mResources.getConfiguration().uiMode
+        boolean nightMode = mNightMode = (mResources.getConfiguration().uiMode
                 & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
         int isTheme = mSecureSettings.getInt(Settings.Secure.SYSTEM_THEME, 0);
 

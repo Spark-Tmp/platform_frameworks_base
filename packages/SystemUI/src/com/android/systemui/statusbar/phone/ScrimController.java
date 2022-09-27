@@ -322,13 +322,10 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         });
         mColors = new GradientColors();
         mBehindColors = new GradientColors();
-        int isNusantaraClearTheme = mSecureSettings.getInt(Settings.Secure.SYSTEM_THEME, 0);
 
-        if (isNusantaraClearTheme == 2) {
-            mDefaultScrimAlpha = BUSY_SCRIM_ALPHA_2;
-        } else {
-            mDefaultScrimAlpha = BUSY_SCRIM_ALPHA;
-        }
+        boolean nightMode = com.android.systemui.theme.ThemeOverlayController.mNightMode;
+        int isNusantaraClearTheme = mSecureSettings.getInt(Settings.Secure.SYSTEM_THEME, 0);
+        mDefaultScrimAlpha = isNusantaraClearTheme == 2 && nightMode ? BUSY_SCRIM_ALPHA_2 : BUSY_SCRIM_ALPHA;
     }
 
     /**
