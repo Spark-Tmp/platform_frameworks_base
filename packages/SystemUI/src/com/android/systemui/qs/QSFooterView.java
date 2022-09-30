@@ -79,6 +79,7 @@ public class QSFooterView extends FrameLayout {
     private DataUsageController mDataController;
     private SubscriptionManager mSubManager;
 
+    private boolean mHasNoSims;
     private boolean mIsWifiConnected;
     private String mWifiSsid;
 
@@ -109,6 +110,7 @@ public class QSFooterView extends FrameLayout {
         updateResources();
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
         setBuildText();
+        setUsageText();
     }
 
     private void setBuildText() {
@@ -131,7 +133,7 @@ public class QSFooterView extends FrameLayout {
     }
 
     private void setUsageText() {
-        if (mUsageText == null) return;
+        if (mUsageText == null || !mExpanded) return;
         DataUsageController.DataUsageInfo info;
         String suffix;
         if (mIsWifiConnected) {
@@ -142,19 +144,26 @@ public class QSFooterView extends FrameLayout {
             } else {
                 suffix = getWifiSsid();
             }
-        } else {
+        } else if (!mHasNoSims) {
             mDataController.setSubscriptionId(
                     SubscriptionManager.getDefaultDataSubscriptionId());
             info = mDataController.getDailyDataUsageInfo();
             suffix = getSlotCarrierName();
+        } else {
+            mShouldShowDataUsage = false;
+            mUsageText.setText(null);
+            updateVisibilities();
+            return;
         }
         if (info == null) {
             Log.w(TAG, "setUsageText: DataUsageInfo is NULL.");
             return;
         }
+        mShouldShowDataUsage = true;
         mUsageText.setText(formatDataUsage(info.usageLevel) + " " +
-                mContext.getResources().getString(R.string.usage_data) +
-                " (" + suffix + ")");
+            mContext.getResources().getString(R.string.usage_data) +
+            " (" + suffix + ")");
+        updateVisibilities();
     }
 
     private CharSequence formatDataUsage(long byteValue) {
@@ -198,6 +207,13 @@ public class QSFooterView extends FrameLayout {
     protected void setIsWifiConnected(boolean connected) {
         if (mIsWifiConnected != connected) {
             mIsWifiConnected = connected;
+            setUsageText();
+        }
+    }
+
+    protected void setNoSims(boolean hasNoSims) {
+        if (mHasNoSims != hasNoSims) {
+            mHasNoSims = hasNoSims;
             setUsageText();
         }
     }
@@ -296,6 +312,7 @@ public class QSFooterView extends FrameLayout {
     void updateEverything() {
         post(() -> {
             updateVisibilities();
+            setUsageText();
             setClickable(false);
         });
     }
@@ -305,7 +322,6 @@ public class QSFooterView extends FrameLayout {
                 Settings.System.QS_FOOTER_DATA_USAGE, 0,
                 UserHandle.USER_CURRENT) == 1;
         mBuildText.setVisibility(mExpanded && mShouldShowBuildText ? View.VISIBLE : View.INVISIBLE);
-        mUsageText.setVisibility(mExpanded && mShouldShowDataUsage? View.VISIBLE : View.GONE);
-        if ((mExpanded) && mShouldShowDataUsage) setUsageText();
+        mUsageText.setVisibility(mExpanded && mShouldShowDataUsage ? View.VISIBLE : View.GONE);
     }
 }
