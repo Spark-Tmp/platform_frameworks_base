@@ -21,10 +21,9 @@ import androidx.preference.PreferenceFragment;
 import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.tuner.TunerActivity;
-import com.android.systemui.dagger.SysUIComponent;
-import com.android.systemui.SystemUIFactory;
 
 import javax.inject.Inject;
+import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity;
 
 public class NavbarActivity extends TunerActivity {
 
@@ -35,17 +34,13 @@ public class NavbarActivity extends TunerActivity {
         super(null, Dependency.get(TunerService.class));
     }
 
-    private SysUIComponent mSysUIComponent;
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mSysUIComponent = SystemUIFactory.getInstance().getSysUIComponent();
 
         if (getFragmentManager().findFragmentByTag(TAG_TUNER) == null) {
             final String action = getIntent().getAction();
             final PreferenceFragment fragment = new NavBarTuner();
-            getFragmentManager().beginTransaction().replace(R.id.content_frame,
+            getFragmentManager().beginTransaction().replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
                     fragment, TAG_TUNER).commit();
         }
     }
