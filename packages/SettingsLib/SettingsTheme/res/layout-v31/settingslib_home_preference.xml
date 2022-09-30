@@ -25,7 +25,7 @@
     android:layout_marginTop="@dimen/nad_card_separator"
     android:layout_marginEnd="?android:attr/listPreferredItemPaddingEnd"
     android:background="@drawable/nad_bg_middle"
-    android:backgroundTint="?androidprv:attr/colorSurfaceHighlight"
+    android:backgroundTint="?androidprv:attr/colorSurfaceHeader"
     android:clipToPadding="false"
     android:orientation="vertical">
     <LinearLayout
