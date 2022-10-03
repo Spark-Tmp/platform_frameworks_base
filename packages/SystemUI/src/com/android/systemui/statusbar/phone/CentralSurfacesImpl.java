@@ -899,7 +899,7 @@ public class CentralSurfacesImpl extends CoreStartable implements
         mActivityLaunchAnimator = activityLaunchAnimator;
 
         mGameSpaceManager = new GameSpaceManager(mContext, mKeyguardStateController);
-        mNadSettingsObserver = new NadSettingsObserver(backgroundHandler);
+        mNadSettingsObserver = new NadSettingsObserver(mainHandler);
 
         // The status bar background may need updating when the ongoing call status changes.
         mOngoingCallController.addCallback((animate) -> maybeUpdateBarMode());
