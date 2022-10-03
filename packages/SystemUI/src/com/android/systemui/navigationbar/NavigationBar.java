@@ -1160,8 +1160,8 @@ public class NavigationBar extends ViewController<NavigationBarView> implements 
             recentsButton.setOnLongClickListener(null);
         }
         // Note, this needs to be set after even if we're setting the listener to null
-        backButton.setLongClickable(false);
-        recentsButton.setLongClickable(false);
+        backButton.setLongClickable(pinningActive);
+        recentsButton.setLongClickable(pinningActive);
     }
 
     private void notifyNavigationBarScreenOn() {
@@ -1187,7 +1187,6 @@ public class NavigationBar extends ViewController<NavigationBarView> implements 
 
         ButtonDispatcher imeSwitcherButton = mView.getImeSwitchButton();
         imeSwitcherButton.setOnClickListener(this::onImeSwitcherClick);
-        homeButton.setLongClickable(true);
 
         updateScreenPinningGestures();
     }
@@ -1341,10 +1340,15 @@ public class NavigationBar extends ViewController<NavigationBarView> implements 
                         // should stop lock task.
                         stopLockTaskMode = true;
                         return true;
-                    } else if (v.getId() == btnId2) {
-                        return btnId2 == R.id.recent_apps
-                                ? false
-                                : onHomeLongClick(mView.getHomeButton().getCurrentView());
+                    } else if (v.getId() == R.id.recent_apps) {
+                        // Send long press key event so that Lineage button handling can intercept
+                        KeyButtonView keyButtonView = (KeyButtonView) v;
+                        keyButtonView.sendEvent(KeyEvent.ACTION_DOWN, KeyEvent.FLAG_LONG_PRESS);
+                        keyButtonView.sendAccessibilityEvent(
+                                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
+                        return true;
+                    } else {
+                        onHomeLongClick(mView.getHomeButton().getCurrentView());
                     }
                 }
             } finally {
