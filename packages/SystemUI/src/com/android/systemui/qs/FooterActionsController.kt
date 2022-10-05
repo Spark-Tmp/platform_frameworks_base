@@ -24,6 +24,7 @@ import android.provider.Settings
 import android.provider.Settings.Global.USER_SWITCHER_ENABLED
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.annotation.VisibleForTesting
 import com.android.internal.jank.InteractionJankMonitor
 import com.android.internal.logging.MetricsLogger
@@ -148,7 +149,7 @@ internal class FooterActionsController @Inject constructor(
         .setShowAirplaneMode(true)
         .setShowMissingSim(true)
         .build()
-    private val powerMenuLite: View = view.findViewById(R.id.pm_lite)
+    private val powerMenuLite: ImageView = view.findViewById(R.id.pm_lite)
     private val multiUserSwitchController = multiUserSwitchControllerFactory.create(view)
 
     private val colorActiveAccent = Utils.getColorAttrDefaultColor(context,
@@ -283,8 +284,10 @@ internal class FooterActionsController @Inject constructor(
         val background: Drawable = powerMenuLite.getBackground()
         if (qsTileTint) {
             background.setAlpha(51)
+            powerMenuLite.setColorFilter(colorActiveAccent)
         } else {
             background.setAlpha(255)
+            powerMenuLite.setColorFilter(colorNonActive)
         }
     }
 
