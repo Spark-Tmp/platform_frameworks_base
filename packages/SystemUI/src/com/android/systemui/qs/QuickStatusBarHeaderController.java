@@ -18,6 +18,7 @@ package com.android.systemui.qs;
 
 import android.os.Bundle;
 
+import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.battery.BatteryMeterViewController;
 import com.android.systemui.demomode.DemoMode;
@@ -31,7 +32,10 @@ import com.android.systemui.statusbar.phone.StatusBarLocation;
 import com.android.systemui.statusbar.phone.StatusIconContainer;
 import com.android.systemui.statusbar.policy.Clock;
 import com.android.systemui.statusbar.policy.VariableDateViewController;
+import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.ViewController;
+
+import android.provider.Settings;
 
 import java.util.List;
 
@@ -42,7 +46,7 @@ import javax.inject.Inject;
  */
 @QSScope
 class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader> implements
-        ChipVisibilityListener {
+        ChipVisibilityListener, TunerService.Tunable {
 
     private final QuickQSPanelController mQuickQSPanelController;
     private final StatusBarIconController mStatusBarIconController;
@@ -55,6 +59,11 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
     private final HeaderPrivacyIconsController mPrivacyIconsController;
 
     private boolean mListening;
+
+    private boolean mQsTileTint;
+
+    private static final String QS_TILE_TINT =
+        "system:" + Settings.System.QS_TILE_TINT;
 
     @Inject
     QuickStatusBarHeaderController(QuickStatusBarHeader view,
@@ -97,6 +106,7 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
                 getResources().getString(com.android.internal.R.string.status_bar_alarm_clock));
         mIconContainer.setShouldRestrictIcons(false);
         mStatusBarIconController.addIconGroup(mIconManager);
+        Dependency.get(TunerService.class).addTunable(this, QS_TILE_TINT);
 
         List<String> rssiIgnoredSlots = List.of(
                 getResources().getString(com.android.internal.R.string.status_bar_mobile)
@@ -111,6 +121,7 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
         mPrivacyIconsController.onParentInvisible();
         mStatusBarIconController.removeIconGroup(mIconManager);
         setListening(false);
+        Dependency.get(TunerService.class).removeTunable(this);
     }
 
     public void setListening(boolean listening) {
@@ -132,6 +143,19 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
             mPrivacyIconsController.stopListening();
         }
     }
+
+	@Override
+	public void onTuningChanged(String key, String newValue) {
+		switch (key) {
+			case QS_TILE_TINT:
+				mQsTileTint =
+					TunerService.parseIntegerSwitch(newValue, false);
+				mView.updateColors(mQsTileTint);
+				break;
+			default:
+				break;
+		}
+	}
 
     @Override
     public void onChipVisibilityRefreshed(boolean visible) {

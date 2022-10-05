@@ -71,6 +71,9 @@ public class QuickStatusBarHeader extends FrameLayout implements
     private boolean mExpanded;
     private boolean mQsDisabled;
 
+    private boolean mQsTileTint;
+    private Drawable mClockBg;
+
     @Nullable
     private TouchAnimator mAlphaAnimator;
     @Nullable
@@ -188,8 +191,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
         // it's unavailable or charging
         mBatteryRemainingIcon.setPercentShowMode(BatteryMeterView.MODE_ESTIMATE);
         
-        boolean qsTileTint = android.provider.Settings.System.getIntForUser(mContext.getContentResolver(),
-                android.provider.Settings.System.QS_TILE_TINT, 0, UserHandle.USER_CURRENT) == 1;
+        boolean qsTileTint = mQsTileTint;
                 
         //Identify color source
         colorActive = Utils.getColorAttrDefaultColor(mContext,
@@ -203,10 +205,8 @@ public class QuickStatusBarHeader extends FrameLayout implements
         colorNonActive =
             Utils.getColorAttrDefaultColor(mContext, com.android.internal.R.attr.textColorPrimaryInverse);
 
-        Drawable background = mJrClock.getBackground();
-        if (qsTileTint) {
-        	background.setAlpha(51);
-        }
+        Drawable background = mClockBg = mJrClock.getBackground();
+        background.setAlpha(qsTileTint ? 51 : 255);
         mJrClock.setTextColor(qsTileTint ? colorActiveAccent : colorNonActive);
         
         mIconsAlphaAnimatorFixed = new TouchAnimator.Builder()
@@ -418,14 +418,11 @@ public class QuickStatusBarHeader extends FrameLayout implements
                             //mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
                         }
                         mJrBaseContainer.setBackgroundResource(R.drawable.qs_clock_bg);
-                        Drawable mBgClockExpand = mJrBaseContainer.getBackground();
-                        boolean qsTileTint = android.provider.Settings.System.getIntForUser(mContext.getContentResolver(),
-                            android.provider.Settings.System.QS_TILE_TINT, 0, UserHandle.USER_CURRENT) == 1;
-             
-                        if (mBgClockExpand != null) {
-                            mBgClockExpand.setTint(qsTileTint ? colorInactiveAlpha : colorInactive);
-                        }
 
+                        Drawable mBgClockExpand = mJrBaseContainer.getBackground();
+                        if (mBgClockExpand != null) {
+                            mBgClockExpand.setTint(mQsTileTint ? colorInactiveAlpha : colorInactive);
+                        }
                     }
 
                     @Override
@@ -504,6 +501,21 @@ public class QuickStatusBarHeader extends FrameLayout implements
         mHeaderQsPanel.setDisabledByPolicy(disabled);
         mStatusIconsView.setVisibility(mQsDisabled ? View.GONE : View.VISIBLE);
         updateResources();
+    }
+
+    public void updateColors(boolean qsTileTint) {
+        if (mQsTileTint != qsTileTint) {
+        	mClockBg.setAlpha(qsTileTint ? 51 : 255);
+        	mJrClock.setTextColor(qsTileTint ? colorActiveAccent : colorNonActive);
+
+        	Drawable bgClockExpand = mJrBaseContainer.getBackground();
+        	if (bgClockExpand != null) {
+        	    bgClockExpand.setTint(qsTileTint ? colorInactiveAlpha : colorInactive);
+        	}
+        }
+        boolean needsLayout = mQsTileTint != qsTileTint;
+        mQsTileTint = qsTileTint;
+        if (needsLayout) requestLayout();
     }
 
     @Override

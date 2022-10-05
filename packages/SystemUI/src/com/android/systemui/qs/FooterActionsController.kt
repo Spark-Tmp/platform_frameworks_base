@@ -44,6 +44,7 @@ import com.android.systemui.statusbar.policy.ConfigurationController
 import com.android.systemui.statusbar.policy.DeviceProvisionedController
 import com.android.systemui.statusbar.policy.UserInfoController
 import com.android.systemui.statusbar.policy.UserInfoController.OnUserInfoChangedListener
+import com.android.systemui.tuner.TunerService
 import com.android.systemui.util.LargeScreenUtils
 import com.android.systemui.util.ViewController
 import com.android.systemui.util.settings.GlobalSettings
@@ -82,6 +83,7 @@ internal class FooterActionsController @Inject constructor(
     private val handler: Handler,
     private val configurationController: ConfigurationController,
     private val carrierTextManagerBuilder: CarrierTextManager.Builder
+    private val tunerService: TunerService,
 ) : ViewController<FooterActionsView>(view) {
 
     private var globalActionsDialog: GlobalActionsDialogLite? = null
@@ -153,11 +155,10 @@ internal class FooterActionsController @Inject constructor(
         com.android.internal.R.attr.colorAccent)
     private val colorNonActive = Utils.getColorAttrDefaultColor(context,
         com.android.internal.R.attr.textColorPrimaryInverse)
-    
-    private val qsTileTint: Boolean = System.getIntForUser(
-            context.contentResolver,
-            System.QS_TILE_TINT, 0, UserHandle.USER_CURRENT
-    ) == 1
+
+    private var qsTileTint: Boolean = false
+    private val QS_TILE_TINT =
+            "system:" + System.QS_TILE_TINT
 
     @VisibleForTesting
     internal val securityFootersSeparator = View(context).apply { visibility = View.GONE }
@@ -233,19 +234,20 @@ internal class FooterActionsController @Inject constructor(
     public override fun onViewAttached() {
         carrierTextManager.setListening(carrierTextCallback)
         globalActionsDialog = globalActionsDialogProvider.get()
-        if (showPMLiteButton) {      	
-            val background: Drawable = powerMenuLite.getBackground()
-            if (qsTileTint) {
-                //background.setColorFilter(colorActiveAccent)
-                background.setAlpha(51)
-            } //else {
-                //background.setColorFilter(colorNonActive)
-            //}
+        if (showPMLiteButton) {
             powerMenuLite.visibility = View.VISIBLE
             powerMenuLite.setOnClickListener(onClickListener)
         } else {
             powerMenuLite.visibility = View.GONE
         }
+
+        tunerService.addTunable(object : TunerService.Tunable {
+            override fun onTuningChanged(key: String?, newValue: String?) {
+                qsTileTint = tunerService.getValue(key, 1) != 0
+                updateColors()
+            }
+        }, QS_TILE_TINT)
+
         settingsButtonContainer.setOnClickListener(onClickListener)
         multiUserSetting.isListening = true
 
@@ -275,6 +277,15 @@ internal class FooterActionsController @Inject constructor(
         carrierTextManager.setListening(null)
         updateResources()
         updateView()
+    }
+
+    private fun updateColors() {
+        val background: Drawable = powerMenuLite.getBackground()
+        if (qsTileTint) {
+            background.setAlpha(51)
+        } else {
+            background.setAlpha(255)
+        }
     }
 
     private fun updateView() {

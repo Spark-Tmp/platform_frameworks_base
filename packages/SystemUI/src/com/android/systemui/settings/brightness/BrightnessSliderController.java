@@ -26,12 +26,16 @@ import android.widget.SeekBar;
 import androidx.annotation.Nullable;
 
 import com.android.settingslib.RestrictedLockUtils;
+import com.android.systemui.Dependency;
 import com.android.systemui.Gefingerpoken;
 import com.android.systemui.R;
 import com.android.systemui.classifier.Classifier;
 import com.android.systemui.plugins.FalsingManager;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.ViewController;
+
+import android.provider.Settings;
 
 import javax.inject.Inject;
 
@@ -45,13 +49,18 @@ import javax.inject.Inject;
  * @see BrightnessMirrorController
  */
 public class BrightnessSliderController extends ViewController<BrightnessSliderView> implements
-        ToggleSlider {
+        ToggleSlider, TunerService.Tunable {
 
     private Listener mListener;
     private ToggleSlider mMirror;
     private BrightnessMirrorController mMirrorController;
     private boolean mTracking;
     private final FalsingManager mFalsingManager;
+
+    private boolean mQsTileTint;
+
+    private static final String QS_TILE_TINT =
+        "system:" + Settings.System.QS_TILE_TINT;
 
     private final Gefingerpoken mOnInterceptListener = new Gefingerpoken() {
         @Override
@@ -89,6 +98,7 @@ public class BrightnessSliderController extends ViewController<BrightnessSliderV
     protected void onViewAttached() {
         mView.setOnSeekBarChangeListener(mSeekListener);
         mView.setOnInterceptListener(mOnInterceptListener);
+        Dependency.get(TunerService.class).addTunable(this, QS_TILE_TINT);
     }
 
     @Override
@@ -96,6 +106,7 @@ public class BrightnessSliderController extends ViewController<BrightnessSliderV
         mView.setOnSeekBarChangeListener(null);
         mView.setOnDispatchTouchEventListener(null);
         mView.setOnInterceptListener(null);
+        Dependency.get(TunerService.class).removeTunable(this);
     }
 
     @Override
@@ -107,6 +118,19 @@ public class BrightnessSliderController extends ViewController<BrightnessSliderV
             return mView.dispatchTouchEvent(ev);
         }
     }
+
+	@Override
+	public void onTuningChanged(String key, String newValue) {
+		switch (key) {
+			case QS_TILE_TINT:
+				mQsTileTint =
+					TunerService.parseIntegerSwitch(newValue, false);
+				mView.updateColors(mQsTileTint);
+				break;
+			default:
+				break;
+		}
+	}
 
     private boolean copyEventToMirror(MotionEvent ev) {
         MotionEvent copy = ev.copy();
