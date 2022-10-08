@@ -206,8 +206,6 @@ public class QuickStatusBarHeader extends FrameLayout implements
             Utils.getColorAttrDefaultColor(mContext, com.android.internal.R.attr.textColorPrimaryInverse);
 
         Drawable background = mClockBg = mJrClock.getBackground();
-        background.setAlpha(qsTileTint ? 51 : 255);
-        mJrClock.setTextColor(qsTileTint ? colorActiveAccent : colorNonActive);
         
         mIconsAlphaAnimatorFixed = new TouchAnimator.Builder()
                 //.addFloat(mIconContainer, "alpha", 0, 1)

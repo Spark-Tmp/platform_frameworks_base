@@ -90,11 +90,6 @@ public class BrightnessSliderView extends LinearLayout {
         colorInactiveAlpha = Utils.applyAlpha(0.2f, Utils.getColorAttrDefaultColor(getContext(), R.attr.offStateColor));
         colorNonActive = Utils.getColorAttrDefaultColor(getContext(), com.android.internal.R.attr.textColorPrimaryInverse);
 
-        // Icon Auto Brightness
-        Drawable background = mAutoIcon.getBackground();
-        mAutoIcon.setColorFilter(qsTileTint ? colorActiveAccent : colorNonActive);
-        background.setAlpha(qsTileTint ? 51 : 255);
-
         // Finds the progress drawable. Assumes brightness_progress_drawable.xml
         try {
             LayerDrawable progress = (LayerDrawable) mSlider.getProgressDrawable();
@@ -108,32 +103,23 @@ public class BrightnessSliderView extends LinearLayout {
         } catch (Exception e) {
             // Nothing to do, mProgressDrawable will be null.
         }
-        if (mProgressDrawable != null) {
-        	mProgressDrawable.setTintList(qsTileTint ? ColorStateList.valueOf(colorActiveAlpha) :
-                	ColorStateList.valueOf(colorActiveAccent));
-        }
-        if (mBackgroundSlider != null) {
-        	mBackgroundSlider.setTintList(qsTileTint ? ColorStateList.valueOf(colorInactiveAlpha) :
-                	ColorStateList.valueOf(colorInactive));
-        }
-        if (mIconProgressBrightness != null) {
-        	mIconProgressBrightness.setTintList(qsTileTint ? ColorStateList.valueOf(colorActiveAccent) : 
-                	ColorStateList.valueOf(colorNonActive));
-        }
     }
 
     public void updateColors(boolean qsTileTint) {
         if (mQsTileTint != qsTileTint) {
-			// Icon Auto Brightness
-			mAutoIcon.setColorFilter(qsTileTint ? colorActiveAccent : colorNonActive);
-			Drawable background = mAutoIcon.getBackground();
-			background.setAlpha(qsTileTint ? 51 : 255);
-			mProgressDrawable.setTintList(qsTileTint ? ColorStateList.valueOf(colorActiveAlpha) : 
-													ColorStateList.valueOf(colorActiveAccent));
-			mBackgroundSlider.setTintList(qsTileTint ? ColorStateList.valueOf(colorInactiveAlpha) :
-											  ColorStateList.valueOf(colorInactive));
-			mIconProgressBrightness.setTintList(qsTileTint ? ColorStateList.valueOf(colorActiveAccent) : 
-													ColorStateList.valueOf(colorNonActive));
+        	// Icon Auto Brightness
+        	mAutoIcon.setColorFilter(qsTileTint ? colorActiveAccent : colorNonActive);
+        	Drawable background = mAutoIcon.getBackground();
+        	background.setAlpha(qsTileTint ? 51 : 255);
+        if (mProgressDrawable != null)
+        	mProgressDrawable.setTintList(qsTileTint ? ColorStateList.valueOf(colorActiveAlpha) : 
+												ColorStateList.valueOf(colorActiveAccent));
+        if (mBackgroundSlider != null)
+        	mBackgroundSlider.setTintList(qsTileTint ? ColorStateList.valueOf(colorInactiveAlpha) :
+												ColorStateList.valueOf(colorInactive));
+        if (mIconProgressBrightness != null)
+        	mIconProgressBrightness.setTintList(qsTileTint ? ColorStateList.valueOf(colorActiveAccent) :
+												ColorStateList.valueOf(colorNonActive));
         }
         boolean needsLayout = mQsTileTint != qsTileTint;
         mQsTileTint = qsTileTint;
