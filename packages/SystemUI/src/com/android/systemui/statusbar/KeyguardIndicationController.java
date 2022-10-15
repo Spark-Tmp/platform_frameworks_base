@@ -307,8 +307,11 @@ public class KeyguardIndicationController {
             UserHandle.USER_CURRENT
         ) == 1;
         mHandler.post(() -> {
+            if (mShowBatteryInfo == showBatteryInfo) return;
             mShowBatteryInfo = showBatteryInfo;
-            updateLockScreenBatteryMsg(true /* animate */);
+            if (mRotateTextViewController != null) {
+                updateLockScreenBatteryMsg(true /* animate */);
+            }
         });
     }
 
