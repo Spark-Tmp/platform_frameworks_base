@@ -30,8 +30,10 @@ import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.ContentResolver;
 import android.database.ContentObserver;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.os.UserHandle;
 import android.provider.Settings;
@@ -39,8 +41,6 @@ import android.telephony.SubscriptionManager;
 import android.util.ArrayMap;
 import android.util.IndentingPrintWriter;
 import android.util.SparseArray;
-import android.os.Handler;
-import android.os.UserHandle;
 import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -165,6 +165,8 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
     private boolean mShowClock = true;
     private ImageView mNadLogo;
     private boolean mShowLogo;
+    private Drawable mLogo;
+    private int mLogoStyle;
     private SettingsObserver mSettingsObserver;
     private Handler mMainHandler;
 
@@ -774,24 +776,29 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
             mSystemSettings.registerContentObserverForUser(Settings.System.STATUSBAR_CLOCK, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.STATUSBAR_CLOCK_STYLE, this, UserHandle.USER_ALL);
             mSystemSettings.registerContentObserverForUser(Settings.System.STATUS_BAR_LOGO, this, UserHandle.USER_ALL);
+            mSystemSettings.registerContentObserverForUser(Settings.System.STATUS_BAR_LOGO_STYLE, this, UserHandle.USER_ALL);
         }
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
             switch (uri.getLastPathSegment()) {
                 case Settings.System.STATUSBAR_CLOCK:
-                case Settings.System.STATUSBAR_CLOCK_STYLE:
-                case Settings.System.STATUS_BAR_LOGO:
-                    updateSettings(true);
                 break;
-       }
-    }
+                case Settings.System.STATUSBAR_CLOCK_STYLE:
+                break;
+                case Settings.System.STATUS_BAR_LOGO:
+                case Settings.System.STATUS_BAR_LOGO_STYLE:
+                    updateSettings(true);
+                    updateStatusBarLogo(true);
+                break;
+            }
+        }
 
         void update() {
             mBackgroundHandler.post(() -> {
                 updateSettings(false);
-        });
-    }
+            });
+        }
 
         public void updateSettings(boolean animate) {
             mShowClock = mSystemSettings.getIntForUser(
@@ -800,33 +807,117 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
                 Settings.System.STATUS_BAR_LOGO, 0, UserHandle.USER_CURRENT) == 1;
 
             mMainHandler.post(() -> {
-                if (!mShowClock) {
-                mClockStyle = 1;
-                } else {
-                    mClockStyle = mSystemSettings.getIntForUser(
-                    Settings.System.STATUSBAR_CLOCK_STYLE, 0, UserHandle.USER_CURRENT);
-                }
                 updateClockStyle(animate);
-                if (mNotificationIconAreaInner != null) {
-                    if (mShowLogo) {
-                        if (mNotificationIconAreaInner.getVisibility() == View.VISIBLE) {
-                        animateShow(mNadLogo, animate);
-                        }
-                    } else {
-                        animateHide(mNadLogo, animate, false);
-                    }
-                }
+                updateStatusBarLogo(animate);
             });
         }
     }
 
     private void updateClockStyle(boolean animate) {
         mMainHandler.post(() -> {
+            if (!mShowClock) {
+                mClockStyle = 1;
+            } else {
+                mClockStyle = mSystemSettings.getIntForUser(
+                    Settings.System.STATUSBAR_CLOCK_STYLE, 0, UserHandle.USER_CURRENT);
+            }
             if (mClockStyle == 1 || mClockStyle == 2) {
                 animateHide(mClockView, animate, false);
             } else {
                 if (((Clock)mClockView).isClockVisible()) {
-                    animateShow(mClockView, animate);
+                animateShow(mClockView, animate);
+                }
+            }
+        });
+    }
+
+    private void updateStatusBarLogo(boolean animate) {
+        mLogo = null;
+        if (getContext() == null) {
+            return;
+        }
+
+        mShowLogo = mSystemSettings.getIntForUser(
+            Settings.System.STATUS_BAR_LOGO, 1, UserHandle.USER_CURRENT) == 1;
+        mLogoStyle = mSystemSettings.getIntForUser(
+            Settings.System.STATUS_BAR_LOGO_STYLE, 0, UserHandle.USER_CURRENT);
+
+        mMainHandler.post(() -> {
+            switch(mLogoStyle) {
+                case 0:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_nad_logo);
+                    break;
+                case 1:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_adidas);
+                    break;
+                case 2:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_airjordan);
+                    break;
+                case 3:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_apple_logo);
+                    break;
+                case 4:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_avengers);
+                    break;
+                case 5:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_batman);
+                    break;
+                case 6:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_batman_tdk);
+                    break;
+                case 7:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_beats);
+                    break;
+                case 8:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_biohazard);
+                    break;
+                case 9:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_blackberry);
+                    break;
+                case 10:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_cannabis);
+                    break;
+                case 11:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_fire);
+                    break;
+                case 12:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_nike);
+                    break;
+                case 13:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_pac_man);
+                    break;
+                case 14:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_puma);
+                    break;
+                case 15:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_rog);
+                    break;
+                case 16:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_superman);
+                    break;
+                case 17:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_windows);
+                    break;
+                case 18:
+                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_xbox);
+                    break;
+            }
+            if (mNadLogo != null) {
+                if (mLogo == null) {
+                    // Something wrong. Do not show anything
+                    mNadLogo.setImageDrawable(mLogo);
+                    mShowLogo = false;
+                    return;
+                }
+                mNadLogo.setImageDrawable(mLogo);
+            }
+            if (mNotificationIconAreaInner != null) {
+                if (mShowLogo) {
+                    if (mNotificationIconAreaInner.getVisibility() == View.VISIBLE) {
+                        animateShow(mNadLogo, animate);
+                    }
+                } else {
+                    animateHide(mNadLogo, animate, false);
                 }
             }
         });

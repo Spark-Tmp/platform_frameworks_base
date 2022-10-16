@@ -5683,6 +5683,12 @@ public final class Settings {
         public static final String STATUS_BAR_LOGO = "status_bar_logo";
 
         /**
+        * Statusbar logo Style
+        * @hide
+        */
+        public static final String STATUS_BAR_LOGO_STYLE = "status_bar_logo_style";
+
+        /**
          * @hide
          */
         public static final String FORCE_SHOW_NAVBAR = "navigation_bar_show_new";
