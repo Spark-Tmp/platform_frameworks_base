@@ -48,6 +48,7 @@ class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(
     private var expansionAmount = 0f
     private var isBlurEnabled: Boolean = false
     private var isCombinedEnable: Boolean = false
+    private var dualTone: Boolean = false
 
     /**
      * Sets the alpha of the background of this view.
@@ -80,15 +81,16 @@ class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(
     	isBlurEnabled = alpha
         val background: Drawable = getBackground()
         val blurAlpha = if (isCombinedEnable) 100 else 153
-        if (alpha) {
-            background.setAlpha(blurAlpha)
-        } else {
-            background.setAlpha(255)
-        }
+        background.setAlpha(if (!dualTone) 0 else (if (alpha) blurAlpha else 255))
     }
 
     fun updateAlpha(combined: Boolean) {
     	isCombinedEnable = combined
+    	updateBackground(isBlurEnabled)
+    }
+
+    fun updateFooterView(enable: Boolean) {
+    	dualTone = enable
     	updateBackground(isBlurEnabled)
     }
 

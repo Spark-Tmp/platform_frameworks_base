@@ -169,6 +169,9 @@ internal class FooterActionsController @Inject constructor(
     private val COMBINED_BLUR =
             "system:" + System.COMBINED_BLUR
 
+    private val QS_DUAL_TONE =
+            "system:" + Settings.System.QS_DUAL_TONE
+
     @VisibleForTesting
     internal val securityFootersSeparator = View(context).apply { visibility = View.GONE }
 
@@ -271,6 +274,12 @@ internal class FooterActionsController @Inject constructor(
                 mView.updateAlpha(isCombinedBlurEnable)
             }
         }, COMBINED_BLUR)
+
+        tunerService.addTunable(object : TunerService.Tunable {
+            override fun onTuningChanged(key: String?, newValue: String?) {
+                mView.updateFooterView(tunerService.getValue(key, 1) != 0)
+            }
+        }, QS_DUAL_TONE)
 
         settingsButtonContainer.setOnClickListener(onClickListener)
         multiUserSetting.isListening = true

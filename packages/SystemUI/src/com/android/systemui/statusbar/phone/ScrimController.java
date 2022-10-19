@@ -50,6 +50,7 @@ import com.android.keyguard.KeyguardUpdateMonitor;
 import com.android.keyguard.KeyguardUpdateMonitorCallback;
 import com.android.settingslib.Utils;
 import com.android.systemui.DejankUtils;
+import com.android.systemui.Dependency;
 import com.android.systemui.Dumpable;
 import com.android.systemui.R;
 import com.android.systemui.animation.ShadeInterpolation;
@@ -62,6 +63,7 @@ import com.android.systemui.shade.NotificationPanelViewController;
 import com.android.systemui.statusbar.notification.stack.ViewState;
 import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
+import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.AlarmTimeout;
 import com.android.systemui.util.wakelock.DelayedWakeLock;
 import com.android.systemui.util.wakelock.WakeLock;
@@ -258,6 +260,11 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
     private boolean mWallpaperSupportsAmbientMode;
     private boolean mScreenOn;
 
+    private static final String QS_DUAL_TONE =
+        "system:" + Settings.System.QS_DUAL_TONE;
+
+    private boolean mUseDualToneColor;
+
     // Scrim blanking callbacks
     private Runnable mPendingFrameCallback;
     private Runnable mBlankingTransitionRunnable;
@@ -326,6 +333,13 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         boolean nightMode = com.android.systemui.theme.ThemeOverlayController.mNightMode;
         int isNusantaraClearTheme = mSecureSettings.getInt(Settings.Secure.SYSTEM_THEME, 0);
         mDefaultScrimAlpha = isNusantaraClearTheme == 2 && nightMode ? BUSY_SCRIM_ALPHA_2 : BUSY_SCRIM_ALPHA;
+        TunerService tunerService = Dependency.get(TunerService.class);
+        tunerService.addTunable((key, newValue) -> {
+            if (key.equals(QS_DUAL_TONE)) {
+            	mUseDualToneColor = TunerService.parseIntegerSwitch(newValue, true);
+                ScrimController.this.onThemeChanged();
+            }
+        }, QS_DUAL_TONE);
     }
 
     /**
@@ -1422,7 +1436,7 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         mColors.setSupportsDarkText(
                 ColorUtils.calculateContrast(mColors.getMainColor(), Color.WHITE) > 4.5);
 
-        mBehindColors.setMainColor(surfaceBackground);
+        mBehindColors.setMainColor(mUseDualToneColor ? surfaceBackground : background);
         mBehindColors.setSecondaryColor(accent);
         mBehindColors.setSupportsDarkText(
                 ColorUtils.calculateContrast(mBehindColors.getMainColor(), Color.WHITE) > 4.5);
