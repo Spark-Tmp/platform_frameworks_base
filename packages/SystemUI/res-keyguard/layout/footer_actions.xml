@@ -22,7 +22,7 @@
     xmlns:systemui="http://schemas.android.com/apk/res-auto"
     xmlns:androidprv="http://schemas.android.com/apk/prv/res/android"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/footer_actions_height"
+    android:layout_height="wrap_content"
     android:elevation="@dimen/qs_panel_elevation"
     android:paddingTop="@dimen/qs_footer_actions_top_padding"
     android:paddingBottom="@dimen/qs_footer_actions_bottom_padding"
@@ -30,6 +30,23 @@
     android:gravity="center_vertical|end"
     android:layout_gravity="bottom"
 >
+
+	<LinearLayout
+        android:orientation="vertical"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent" >
+
+    <LinearLayout
+        android:id="@+id/security_footers_container"
+        android:orientation="horizontal"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+    />
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_height="@dimen/qs_footer_action_button_size"
+		android:layout_width="match_parent"  >
 
     <com.android.systemui.qs.CustomCarrierText
         android:id="@+id/carrier_label_footer"
@@ -46,14 +63,6 @@
         android:singleLine="true"
         systemui:showMissingSim="true"
         systemui:showAirplaneMode="true" />
-
-    <LinearLayout
-        android:id="@+id/security_footers_container"
-        android:orientation="horizontal"
-        android:layout_height="@dimen/qs_footer_action_button_size"
-        android:layout_width="0dp"
-        android:layout_weight="1"
-    />
 
     <!-- Negative margin equal to -->
     <LinearLayout
@@ -76,6 +85,19 @@
                 android:layout_gravity="center"
                 android:scaleType="centerInside" />
         </com.android.systemui.statusbar.phone.MultiUserSwitch>
+
+        <com.android.systemui.statusbar.AlphaOptimizedImageView
+            android:id="@android:id/edit"
+            android:layout_width="@dimen/qs_footer_action_button_size"
+            android:layout_height="@dimen/qs_footer_action_button_size"
+            android:background="@drawable/qs_footer_action_circle"
+            android:clickable="true"
+            android:clipToPadding="false"
+            android:focusable="true"
+            android:padding="@dimen/qs_footer_icon_padding"
+            android:src="@*android:drawable/ic_mode_edit"
+            android:contentDescription="@string/accessibility_quick_settings_edit"
+            android:tint="?android:attr/textColorPrimary" />
 
         <com.android.systemui.statusbar.AlphaOptimizedFrameLayout
             android:id="@+id/settings_button_container"
@@ -113,6 +135,10 @@
             android:src="@*android:drawable/ic_lock_power_off"
             android:contentDescription="@string/accessibility_quick_settings_power_menu"
             android:tint="?androidprv:attr/textColorPrimaryInverse" />
+
+    </LinearLayout>
+
+	</LinearLayout>
 
     </LinearLayout>
 </com.android.systemui.qs.FooterActionsView>

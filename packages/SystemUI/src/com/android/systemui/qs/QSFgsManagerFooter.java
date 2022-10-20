@@ -20,6 +20,7 @@ import static com.android.systemui.qs.dagger.QSFragmentModule.QS_FGS_MANAGER_FOO
 import static com.android.systemui.util.PluralMessageFormaterKt.icuMessageFormat;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -28,10 +29,14 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.qs.dagger.QSScope;
+import com.android.systemui.tuner.TunerService;
+
+import android.provider.Settings;
 
 import java.util.concurrent.Executor;
 
@@ -59,6 +64,15 @@ public class QSFgsManagerFooter implements View.OnClickListener,
     private boolean mIsInitialized = false;
     private int mNumPackages;
 
+    private boolean mBlurStyleEnabled;
+    private boolean mIsBlurCombinedEnabled;
+    private static final String BLUR_STYLE =
+        "system:" + Settings.System.BLUR_STYLE_PREFERENCE_KEY;
+
+    private static final String COMBINED_BLUR =
+        "system:" + Settings.System.COMBINED_BLUR;
+
+
     private final View mTextContainer;
     private final View mNumberContainer;
     private final TextView mNumberView;
@@ -83,6 +97,18 @@ public class QSFgsManagerFooter implements View.OnClickListener,
         mMainExecutor = mainExecutor;
         mExecutor = executor;
         mFgsManagerController = fgsManagerController;
+        TunerService tunerService = Dependency.get(TunerService.class);
+        tunerService.addTunable((key, newValue) -> {
+            if (key.equals(BLUR_STYLE)) {
+            	mBlurStyleEnabled = TunerService.parseIntegerSwitch(newValue, true);
+                updateAlpha();
+            } else if (key.equals(COMBINED_BLUR)) {
+            	mIsBlurCombinedEnabled = TunerService.parseIntegerSwitch(newValue, true);
+                updateAlpha();
+            }
+        },
+        BLUR_STYLE,
+        COMBINED_BLUR);
     }
 
     /**
@@ -108,6 +134,14 @@ public class QSFgsManagerFooter implements View.OnClickListener,
         mRootView.setOnClickListener(this);
 
         mIsInitialized = true;
+    }
+
+    public void updateAlpha() {
+    	int alpha = mIsBlurCombinedEnabled ? 100 : 153;
+        Drawable textContainer = mTextContainer.getBackground();
+    	if (textContainer != null) textContainer.setAlpha(mBlurStyleEnabled ? alpha : 255);
+        Drawable numberContainer = mNumberContainer.getBackground();
+    	if (numberContainer != null) numberContainer.setAlpha(mBlurStyleEnabled ? alpha : 255);
     }
 
     public void setListening(boolean listening) {

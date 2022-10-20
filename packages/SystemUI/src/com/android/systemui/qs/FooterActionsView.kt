@@ -41,6 +41,7 @@ import com.android.systemui.statusbar.phone.MultiUserSwitch
 // TODO(b/242040009): Remove this file.
 class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(context, attrs) {
     private lateinit var settingsContainer: View
+    private lateinit var editButton: View
     private lateinit var multiUserSwitch: MultiUserSwitch
     private lateinit var multiUserAvatar: ImageView
 
@@ -66,6 +67,7 @@ class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(
     override fun onFinishInflate() {
         super.onFinishInflate()
         settingsContainer = findViewById(R.id.settings_button_container)
+        editButton = findViewById(android.R.id.edit)
         multiUserSwitch = findViewById(R.id.multi_user_switch)
         multiUserAvatar = multiUserSwitch.findViewById(R.id.multi_user_avatar)
 
@@ -82,6 +84,10 @@ class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(
         val background: Drawable = getBackground()
         val blurAlpha = if (isCombinedEnable) 100 else 153
         background.setAlpha(if (!dualTone) 0 else (if (alpha) blurAlpha else 255))
+        if (multiUserSwitch.visibility == View.VISIBLE) {
+            val multiUserBackground: Drawable = multiUserSwitch.getBackground()
+            if (multiUserBackground != null) multiUserBackground.setAlpha(if (alpha) blurAlpha else 255)
+        }
     }
 
     fun updateAlpha(combined: Boolean) {
@@ -117,6 +123,7 @@ class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(
     private fun updateClickabilities() {
         multiUserSwitch.isClickable = multiUserSwitch.visibility == VISIBLE
         settingsContainer.isClickable = settingsContainer.visibility == VISIBLE
+        editButton.isClickable = editButton.visibility == VISIBLE
     }
 
     private fun updateVisibilities(
@@ -126,6 +133,8 @@ class FooterActionsView(context: Context?, attrs: AttributeSet?) : LinearLayout(
         multiUserSwitch.visibility = if (multiUserEnabled) VISIBLE else GONE
         val isDemo = UserManager.isDeviceInDemoMode(context)
         settingsContainer.visibility = if (isDemo) INVISIBLE else VISIBLE
+        editButton.visibility = if (qsDisabled) GONE else VISIBLE
+        editButton.visibility = if (isDemo) INVISIBLE else VISIBLE
     }
 
     fun onUserInfoChanged(picture: Drawable?, isGuestUser: Boolean) {

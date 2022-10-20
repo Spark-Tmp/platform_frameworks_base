@@ -57,7 +57,6 @@ public class QSFooterViewController extends ViewController<QSFooterView> impleme
     private final TextView mBuildText;
     private final TextView mUsageText;
     private final PageIndicator mPageIndicator;
-    private final View mEditButton;
     private final FalsingManager mFalsingManager;
     private final ActivityStarter mActivityStarter;
     private final WifiStatusTracker mWifiTracker;
@@ -97,7 +96,6 @@ public class QSFooterViewController extends ViewController<QSFooterView> impleme
         mBuildText = mView.findViewById(R.id.build);
         mUsageText = mView.findViewById(R.id.data_usage);
         mPageIndicator = mView.findViewById(R.id.footer_page_indicator);
-        mEditButton = mView.findViewById(android.R.id.edit);
         mWifiTracker = new WifiStatusTracker(context, context.getSystemService(WifiManager.class),
                 context.getSystemService(NetworkScoreManager.class),
                 context.getSystemService(ConnectivityManager.class),
@@ -106,13 +104,6 @@ public class QSFooterViewController extends ViewController<QSFooterView> impleme
 
     @Override
     protected void onViewAttached() {
-        mEditButton.setOnClickListener(view -> {
-            if (mFalsingManager.isFalseTap(FalsingManager.LOW_PENALTY)) {
-                return;
-            }
-            mActivityStarter
-                    .postQSRunnableDismissingKeyguard(() -> mQsPanelController.showEdit(view));
-        });
         mUsageText.setOnClickListener(view -> {
             ActivityLaunchAnimator.Controller animationController =
                 mUsageText != null ? ActivityLaunchAnimator.Controller.fromView(
@@ -144,7 +135,6 @@ public class QSFooterViewController extends ViewController<QSFooterView> impleme
     @Override
     public void setVisibility(int visibility) {
         mView.setVisibility(visibility);
-        mEditButton.setClickable(visibility == View.VISIBLE);
     }
 
     @Override

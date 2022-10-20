@@ -25,6 +25,7 @@ import android.provider.Settings.Global.USER_SWITCHER_ENABLED
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.FrameLayout
 import androidx.annotation.VisibleForTesting
 import com.android.internal.jank.InteractionJankMonitor
 import com.android.internal.logging.MetricsLogger
@@ -85,6 +86,7 @@ internal class FooterActionsController @Inject constructor(
     private val configurationController: ConfigurationController,
     private val carrierTextManagerBuilder: CarrierTextManager.Builder
     private val tunerService: TunerService,
+    private val qsPanelController: QSPanelController,
 ) : ViewController<FooterActionsView>(view) {
 
     private var globalActionsDialog: GlobalActionsDialogLite? = null
@@ -141,7 +143,7 @@ internal class FooterActionsController @Inject constructor(
             updateVisibility()
         }
 
-    private val settingsButtonContainer: View = view.findViewById(R.id.settings_button_container)
+    private val settingsButtonContainer: FrameLayout = view.findViewById(R.id.settings_button_container)
     private val securityFootersContainer: ViewGroup? =
         view.findViewById(R.id.security_footers_container)
     private val customCarrierText: CustomCarrierText = view.findViewById(R.id.carrier_label_footer)
@@ -156,6 +158,8 @@ internal class FooterActionsController @Inject constructor(
         com.android.internal.R.attr.colorAccent)
     private val colorNonActive = Utils.getColorAttrDefaultColor(context,
         com.android.internal.R.attr.textColorPrimaryInverse)
+
+    private val editButton: ImageView = view.findViewById(android.R.id.edit)
 
     private var qsTileTint: Boolean = false
     private val QS_TILE_TINT =
@@ -206,6 +210,8 @@ internal class FooterActionsController @Inject constructor(
         } else if (v === powerMenuLite) {
             uiEventLogger.log(GlobalActionsDialogLite.GlobalActionsEvent.GA_OPEN_QS)
             globalActionsDialog?.showOrHideDialog(false, true, v)
+        } else if (v === editButton) {
+            activityStarter.postQSRunnableDismissingKeyguard{qsPanelController.showEdit(v)}
         }
     }
 
@@ -230,6 +236,7 @@ internal class FooterActionsController @Inject constructor(
         val previousVisibility = mView.visibility
         mView.visibility = if (visible) View.VISIBLE else View.INVISIBLE
         if (previousVisibility != mView.visibility) updateView()
+        editButton.setClickable(mView.visibility == View.VISIBLE)
     }
 
     private fun startSettingsActivity() {
@@ -281,6 +288,8 @@ internal class FooterActionsController @Inject constructor(
             }
         }, QS_DUAL_TONE)
 
+        editButton.setOnClickListener(onClickListener)
+
         settingsButtonContainer.setOnClickListener(onClickListener)
         multiUserSetting.isListening = true
 
@@ -314,12 +323,20 @@ internal class FooterActionsController @Inject constructor(
 
     private fun updateColors() {
         val background: Drawable = powerMenuLite.getBackground()
+        val editBackground: Drawable = editButton.getBackground()
+        val settingsBackground: Drawable = settingsButtonContainer.getBackground()
         val blurAlpha = if (isCombinedBlurEnable) 100 else 153
-        if (qsTileTint || isBlurEnable) {
-            background.setAlpha(if (isBlurEnable) blurAlpha else 51)
-        } else {
-            background.setAlpha(255)
-        }
+        background.setAlpha(
+                if (qsTileTint || isBlurEnable)
+                (if (isBlurEnable) blurAlpha else 51)
+                else 255)
+        editBackground.setAlpha(
+                if (isBlurEnable) blurAlpha else 255)
+        settingsBackground.setAlpha(
+                if (isBlurEnable) blurAlpha else 255)
+        val security: Drawable = securityFooterController.view.getBackground()
+        if (security != null) security.setAlpha(
+                if (isBlurEnable) blurAlpha else 255)
         if (qsTileTint) {
             powerMenuLite.setColorFilter(colorActiveAccent)
         } else {
