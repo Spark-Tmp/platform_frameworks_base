@@ -110,7 +110,13 @@ public class DisplayUtils {
             Log.e("Blurred", "Blurr error bitmap is null");
             return null;
         }
-        bitmap.prepareToDraw();
-        return bitmap.copy(Bitmap.Config.ARGB_8888, true);
+
+        // Create a copy of the screenshot that is immutable and backed in ashmem.
+        // This greatly reduces the overhead of passing the bitmap between processes.
+        final Bitmap ret = bitmap.asShared();
+        if (ret != bitmap) {
+            bitmap.recycle();
+        }
+        return ret;
     }
 }

@@ -288,9 +288,14 @@ public class DynamicUtils {
             Log.e(TAG, "Failed to get colors apply Black!!! for dynamic system bars");
             return null;
         }
-        screenShot.prepareToDraw();
 
-        return screenShot.copy(Bitmap.Config.ARGB_8888, true);
+        // Create a copy of the screenshot that is immutable and backed in ashmem.
+        // This greatly reduces the overhead of passing the bitmap between processes.
+        final Bitmap ret = screenShot.asShared();
+        if (ret != screenShot) {
+            screenShot.recycle();
+        }
+        return ret;
     }
 
 }
