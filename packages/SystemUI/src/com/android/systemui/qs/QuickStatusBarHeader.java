@@ -518,15 +518,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
 
     public void updateAlpha(boolean isBlurEnable) {
     	mBlurStyleEnabled = isBlurEnable;
-        boolean qsTileTint = mQsTileTint;
-        int alphaBlur = mIsBlurCombinedEnabled ? 100 : 153;
-        mClockBg.setAlpha(qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255);
-
-        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
-        Drawable bgClockExpand = mJrBaseContainer.getBackground();
-        if (bgClockExpand != null) {
-            bgClockExpand.setTint(qsTileTint || isBlurEnable ? (isBlurEnable ? colorAlphaBlur : colorInactiveAlpha) : colorInactive);
-        }
+        updateColors(mQsTileTint);
     }
 
     public void updateIsCombined(boolean isCombineEnable) {

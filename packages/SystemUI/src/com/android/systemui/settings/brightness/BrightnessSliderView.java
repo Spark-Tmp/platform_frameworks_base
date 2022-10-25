@@ -134,21 +134,7 @@ public class BrightnessSliderView extends LinearLayout {
 
     public void updateAlpha(boolean isBlurEnable) {
         mBlurStyleEnabled = isBlurEnable;
-        boolean qsTileTint = mQsTileTint;
-
-        // Icon Auto Brightness
-        mAutoIcon.setColorFilter(qsTileTint ? colorActiveAccent : colorNonActive);
-        Drawable background = mAutoIcon.getBackground();
-        int alphaBlur = mIsBlurCombinedEnabled ? 100 : 153;
-        background.setAlpha(qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255);
-        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurActiveAlpha : colorBlurActiveAlpha;
-        int colorAlphaBlurInactive = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
-        if (mProgressDrawable != null)
-        	mProgressDrawable.setTintList(qsTileTint || isBlurEnable ? ColorStateList.valueOf(isBlurEnable ? colorAlphaBlur : colorActiveAlpha) : 
-					ColorStateList.valueOf(colorActiveAccent));
-        if (mBackgroundSlider != null)
-        	mBackgroundSlider.setTintList(qsTileTint || isBlurEnable ? ColorStateList.valueOf(isBlurEnable ? colorAlphaBlurInactive : colorInactiveAlpha) :
-					ColorStateList.valueOf(colorInactive));
+        updateColors(mQsTileTint);
     }
 
     public void updateIsCombined(boolean isCombineEnable) {
