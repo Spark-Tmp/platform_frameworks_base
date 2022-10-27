@@ -61,6 +61,7 @@ import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.dump.DumpManager;
 import com.android.systemui.flags.FeatureFlags;
+import com.android.systemui.nad.ResourceUtils;
 import com.android.systemui.plugins.DarkIconDispatcher;
 import com.android.systemui.plugins.statusbar.StatusBarStateController;
 import com.android.systemui.shade.NotificationPanelViewController;
@@ -783,9 +784,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         public void onChange(boolean selfChange, Uri uri) {
             switch (uri.getLastPathSegment()) {
                 case Settings.System.STATUSBAR_CLOCK:
-                break;
                 case Settings.System.STATUSBAR_CLOCK_STYLE:
-                break;
                 case Settings.System.STATUS_BAR_LOGO:
                 case Settings.System.STATUS_BAR_LOGO_STYLE:
                     updateSettings(true);
@@ -832,7 +831,6 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
     }
 
     private void updateStatusBarLogo(boolean animate) {
-        mLogo = null;
         if (getContext() == null) {
             return;
         }
@@ -842,75 +840,87 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         mLogoStyle = mSystemSettings.getIntForUser(
             Settings.System.STATUS_BAR_LOGO_STYLE, 0, UserHandle.USER_CURRENT);
 
+        Drawable nad = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_nad_logo"));
+        Drawable adidas = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_adidas"));
+        Drawable airjordan = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_airjordan"));
+        Drawable apple = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_apple_logo"));
+        Drawable avengers = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_avengers"));
+        Drawable batman = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_batman"));
+        Drawable batmantdk = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_batman_tdk"));
+        Drawable beats = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_beats"));
+        Drawable biohazard = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_biohazard"));
+        Drawable blackberry = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_blackberry"));
+        Drawable cannabis = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_cannabis"));
+        Drawable fire = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_fire"));
+        Drawable nike = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_nike"));
+        Drawable pacman = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_pac_man"));
+        Drawable puma = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_puma"));
+        Drawable rog = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_rog"));
+        Drawable superman = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_superman"));
+        Drawable windows = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_windows"));
+        Drawable xbox = getContext().getDrawable(ResourceUtils.getDrawableResId("ic_xbox"));
+
         mMainHandler.post(() -> {
             switch(mLogoStyle) {
                 case 0:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_nad_logo);
+                    mLogo = nad;
                     break;
                 case 1:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_adidas);
+                    mLogo = adidas;
                     break;
                 case 2:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_airjordan);
+                    mLogo = airjordan;
                     break;
                 case 3:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_apple_logo);
+                    mLogo = apple;
                     break;
                 case 4:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_avengers);
+                    mLogo = avengers;
                     break;
                 case 5:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_batman);
+                    mLogo = batman;
                     break;
                 case 6:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_batman_tdk);
+                    mLogo = batmantdk;
                     break;
                 case 7:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_beats);
+                    mLogo = beats;
                     break;
                 case 8:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_biohazard);
+                    mLogo = biohazard;
                     break;
                 case 9:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_blackberry);
+                    mLogo = blackberry;
                     break;
                 case 10:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_cannabis);
+                    mLogo = cannabis;
                     break;
                 case 11:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_fire);
+                    mLogo = fire;
                     break;
                 case 12:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_nike);
+                    mLogo = nike;
                     break;
                 case 13:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_pac_man);
+                    mLogo = pacman;
                     break;
                 case 14:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_puma);
+                    mLogo = puma;
                     break;
                 case 15:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_rog);
+                    mLogo = rog;
                     break;
                 case 16:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_superman);
+                    mLogo = superman;
                     break;
                 case 17:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_windows);
+                    mLogo = windows;
                     break;
                 case 18:
-                    mLogo = getContext().getResources().getDrawable(R.drawable.ic_xbox);
+                    mLogo = xbox;
                     break;
             }
-            if (mNadLogo != null) {
-                if (mLogo == null) {
-                    // Something wrong. Do not show anything
-                    mNadLogo.setImageDrawable(mLogo);
-                    mShowLogo = false;
-                    return;
-                }
-                mNadLogo.setImageDrawable(mLogo);
-            }
+            mNadLogo.setImageDrawable(mLogo);
             if (mNotificationIconAreaInner != null) {
                 if (mShowLogo) {
                     if (mNotificationIconAreaInner.getVisibility() == View.VISIBLE) {

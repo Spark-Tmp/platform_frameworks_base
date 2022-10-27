@@ -106,6 +106,7 @@ public class RemoteInputView extends LinearLayout implements View.OnClickListene
     private RemoteEditText mEditText;
     private ImageButton mSendButton;
     private GradientDrawable mContentBackground;
+    private GradientDrawable mSendBackground;
     private ProgressBar mProgressBar;
     private ImageView mDelete;
     private ImageView mDeleteBg;
@@ -226,6 +227,8 @@ public class RemoteInputView extends LinearLayout implements View.OnClickListene
                 accentColor.getDefaultColor(), PorterDuff.Mode.SRC_IN);
         mContentBackground.setColor(editBgColor);
         mContentBackground.setStroke(stroke, accentColor);
+        mSendBackground.setColor(editBgColor);
+        mSendBackground.setStroke(stroke, accentColor);
         mDelete.setImageTintList(ColorStateList.valueOf(deleteFgColor));
         mDeleteBg.setImageTintList(ColorStateList.valueOf(deleteBgColor));
         mSendButton.setImageTintList(accentColor);
@@ -238,7 +241,7 @@ public class RemoteInputView extends LinearLayout implements View.OnClickListene
     public void updateBackground(boolean alpha) {
         Drawable bg = getBackground();
         if (bg != null) bg.setAlpha(alpha ? 0 : 255);
-        mSendButton.setBackground(alpha ? mContentBackground : null);
+        mSendButton.setBackground(alpha ? mSendBackground : null);
     }
 
     @Override
@@ -249,6 +252,8 @@ public class RemoteInputView extends LinearLayout implements View.OnClickListene
         mSendButton = findViewById(R.id.remote_input_send);
         mSendButton.setOnClickListener(this);
         mContentBackground = (GradientDrawable)
+                mContext.getDrawable(R.drawable.remote_input_view_text_bg).mutate();
+        mSendBackground = (GradientDrawable)
                 mContext.getDrawable(R.drawable.remote_input_view_text_bg).mutate();
         mDelete = findViewById(R.id.remote_input_delete);
         mDeleteBg = findViewById(R.id.remote_input_delete_bg);
