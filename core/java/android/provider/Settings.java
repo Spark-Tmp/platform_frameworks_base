@@ -6178,6 +6178,12 @@ public final class Settings {
         public static final String DATA_DISABLED_ICON = "data_disabled_icon";
 
         /**
+         * Whether to show IME space
+         * @hide
+         */
+        public static final String HIDE_IME_SPACE_ENABLE = "hide_ime_space_enable";
+
+        /**
          * These are all public system settings
          *
          * @hide
