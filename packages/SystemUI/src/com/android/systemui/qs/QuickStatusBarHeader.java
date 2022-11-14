@@ -90,10 +90,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
     
     // jr clock
     private TextClock mJrClock;
-    private LinearLayout mJrClockContainer;
     private LinearLayout mJrDateContainer;
-    private LinearLayout mJrBaseContainer;
-    private AnalogClock mJrAnalogClock;
 
     //private View mQSCarriers;
     private ViewGroup mClockContainer;
@@ -168,16 +165,14 @@ public class QuickStatusBarHeader extends FrameLayout implements
         mPrivacyContainer = findViewById(R.id.privacy_container);
         
         // jr clock
-        mJrClockContainer = findViewById(R.id.jr_clock_container);
         mJrDateContainer = findViewById(R.id.jr_date_container);
         mJrDateContainer.setOnClickListener(this);
-        mJrBaseContainer = findViewById(R.id.jr_base_container);
-        mJrBaseContainer.setOnClickListener(this);
-        mJrBaseContainer.setOnLongClickListener(this);
-        mJrClock = findViewById(R.id.jr_clock);
-        mJrAnalogClock = findViewById(R.id.jr_analog_clock);
-
         mClockContainer = findViewById(R.id.clock_container);
+        mClockContainer.setOnClickListener(this);
+        mClockContainer.setOnLongClickListener(this);
+        mJrClock = findViewById(R.id.jr_clock);
+
+        
         mDatePrivacySeparator = findViewById(R.id.space);
         // Tint for the battery icons are handled in setupHost()
         mBatteryRemainingIcon = findViewById(R.id.batteryRemainingIcon);
@@ -265,7 +260,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
 
     @Override
     public void onClick(View v) {
-        if (v == mJrBaseContainer) {
+        if (v == mClockContainer) {
             mActivityStarter.postStartActivityDismissingKeyguard(new Intent(
                     AlarmClock.ACTION_SHOW_ALARMS), 0);
         } else if (v == mJrDateContainer) {
@@ -279,7 +274,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
 
     @Override
     public boolean onLongClick(View v) {
-        if (v == mJrBaseContainer || v == mJrDateContainer) {
+        if (v == mClockContainer || v == mJrDateContainer) {
             final Intent nIntent = new Intent(Intent.ACTION_MAIN);
             nIntent.setClassName("com.android.settings",
                     "com.android.settings.Settings$DateTimeSettingsActivity");
@@ -391,47 +386,33 @@ public class QuickStatusBarHeader extends FrameLayout implements
             return;
         }
         TouchAnimator.Builder builder = new TouchAnimator.Builder()
-                // These views appear on expanding down
-                //.addFloat(mQSCarriers, "alpha", 0, 1)
-                .addFloat(mJrClockContainer, "alpha", 0, 1)
-                .addFloat(mJrDateContainer, "alpha", 1, 0)
-                .addFloat(mJrClock, "alpha", 1, 0)
-                .addFloat(mJrAnalogClock, "alpha", 0, 1)
-                .addFloat(mJrBaseContainer, "alpha", 0, 10)
+                .addFloat(mJrDateContainer, "translationX", 0, 20f )
+                .addFloat(mJrDateContainer, "translationY", 0, 30f )
+                .addFloat(mJrClock, "scaleX", 1f , 1.5f)
+                .addFloat(mJrClock, "scaleY", 1f, 1.5f)
+                .addFloat(mJrClock, "translationX", 1f, 55f)
+                .addFloat(mBatteryRemainingIcon, "translationY", 2f, 112f)
+                .addFloat(mIconContainer, "translationX", 0, -148f)
+                .addFloat(mIconContainer, "translationY", 0, 30f )
                 .setListener(new TouchAnimator.ListenerAdapter() {
                     @Override
                     public void onAnimationAtEnd() {
                         super.onAnimationAtEnd();
                         if (!mIsSingleCarrier) {
-                            //mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
                         }
-                        // Make it gone so there's enough room for carrier names
                     }
 
                     @Override
                     public void onAnimationStarted() {
                         setSeparatorVisibility(false);
-                        setJrClockVisibility(false);
                         if (!mIsSingleCarrier) {
-                            //mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
-                        }
-                        mJrBaseContainer.setBackgroundResource(R.drawable.qs_clock_bg);
-
-                        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
-                        Drawable bgClockExpand = mJrBaseContainer.getBackground();
-                        if (bgClockExpand != null) {
-                            bgClockExpand.setTint(mQsTileTint || mBlurStyleEnabled ? (mBlurStyleEnabled ? colorAlphaBlur : colorInactiveAlpha) : colorInactive);
-                        }
+                        }    
                     }
 
                     @Override
                     public void onAnimationAtStart() {
                         super.onAnimationAtStart();
                         setSeparatorVisibility(mShowClockIconsSeparator);
-                        setJrClockVisibility(true);
-                        mJrClockContainer.setBackgroundResource(R.drawable.ic_blank);
-                        // In QQS we never ignore RSSI.
-                        //mIconContainer.removeIgnoredSlots(mRssiIgnoredSlots);
                     }
                 });
         mAlphaAnimator = builder.build();
@@ -507,12 +488,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
     	boolean isBlurEnable = mBlurStyleEnabled;
         int alphaBlur = mIsBlurCombinedEnabled ? 100 : 153;
         mClockBg.setAlpha(qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255);
-
-        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
-        Drawable bgClockExpand = mJrBaseContainer.getBackground();
-        if (bgClockExpand != null) {
-            bgClockExpand.setTint(qsTileTint || isBlurEnable ? (isBlurEnable ? colorAlphaBlur : colorInactiveAlpha) : colorInactive);
-        }
+        
         mJrClock.setTextColor(qsTileTint ? colorActiveAccent : colorNonActive);
     }
 
@@ -563,9 +539,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
                 setSeparatorVisibility(false);
                 mShowClockIconsSeparator = false;
                 mHasCenterCutout = false;
-                setJrClockVisibility(mKeyguardExpansionFraction == 0f);
             } else {
-            	setJrClockVisibility(mKeyguardExpansionFraction == 0f);
                 datePrivacySeparatorLayoutParams.width = topCutout.width();
                 mDatePrivacySeparator.setVisibility(View.VISIBLE);
                 mClockIconsSeparatorLayoutParams.width = topCutout.width();
@@ -615,34 +589,6 @@ public class QuickStatusBarHeader extends FrameLayout implements
         */
     }
     
-    // jr clock
-    private void setJrClockVisibility(boolean visible) {
-    	int newVisibility = visible ? View.VISIBLE : View.GONE;
-
-        Configuration config = mContext.getResources().getConfiguration();
-        //mQSCarriers.setVisibility(visible || config.orientation == Configuration.ORIENTATION_LANDSCAPE ? View.GONE : View.VISIBLE);
-
-        mJrClock.setVisibility(visible ? View.VISIBLE : View.GONE);
-        mJrClockContainer.setVisibility(visible ? View.GONE : View.VISIBLE);
-        mJrDateContainer.setVisibility(visible ? View.VISIBLE : View.GONE);
-        mJrAnalogClock.setVisibility(visible ? View.GONE : View.VISIBLE);
-
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mJrBaseContainer.getLayoutParams();
-        lp = (LinearLayout.LayoutParams) mJrDateContainer.getLayoutParams();
-        
-        if (visible) {
-        	lp.width = LayoutParams.WRAP_CONTENT;
-        } else if (!visible && config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        	lp.width = 460;
-        } else {
-        	lp.width = LayoutParams.MATCH_PARENT;
-        }
-        lp.height = visible ? LayoutParams.WRAP_CONTENT : mContext.getResources()
-                .getDimensionPixelSize(R.dimen.qs_quick_tile_size);
-        mJrBaseContainer.setLayoutParams(lp);
-        mJrDateContainer.setLayoutParams(lp);
-    }
-
     private void updateHeadersPadding() {
         setContentMargins(mDatePrivacyView, 0, 0);
         setContentMargins(mStatusIconsView, 0, 0);
