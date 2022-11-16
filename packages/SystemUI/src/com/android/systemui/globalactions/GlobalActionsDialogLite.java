@@ -41,6 +41,7 @@ import android.app.WallpaperManager;
 import android.app.admin.DevicePolicyManager;
 import android.app.trust.TrustManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -51,8 +52,14 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Build;
@@ -115,6 +122,7 @@ import com.android.internal.util.EmergencyAffordanceManager;
 import com.android.internal.util.ScreenshotHelper;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardUpdateMonitor;
+import com.android.settingslib.Utils;
 import com.android.systemui.MultiListLayout;
 import com.android.systemui.MultiListLayout.MultiListAdapter;
 import com.android.systemui.animation.DialogCuj;
@@ -124,6 +132,8 @@ import com.android.systemui.broadcast.BroadcastDispatcher;
 import com.android.systemui.colorextraction.SysuiColorExtractor;
 import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
+import com.android.systemui.nad.BlurUtils;
+import com.android.systemui.nad.DisplayUtils;
 import com.android.systemui.plugins.GlobalActions.GlobalActionsManager;
 import com.android.systemui.plugins.GlobalActionsPanelPlugin;
 import com.android.systemui.scrim.ScrimDrawable;
@@ -2256,6 +2266,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
         private KeyguardUpdateMonitor mKeyguardUpdateMonitor;
         private LockPatternUtils mLockPatternUtils;
         private float mWindowDimAmount;
+        private boolean mBlurStyleEnable;
 
         protected ViewGroup mContainer;
 
@@ -2344,6 +2355,31 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
             mKeyguardUpdateMonitor = keyguardUpdateMonitor;
             mLockPatternUtils = lockPatternUtils;
             mGestureDetector = new GestureDetector(mContext, mGestureListener);
+            boolean blurStyleEnable = mBlurStyleEnable = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.BLUR_STYLE_PREFERENCE_KEY, 0, UserHandle.USER_CURRENT) == 1;
+            if (blurStyleEnable) {
+                // Window initialization
+                Window window = getWindow();
+                window.requestFeature(Window.FEATURE_NO_TITLE);
+                window.getAttributes().systemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+                // Inflate the decor view, so the attributes below are not overwritten by the theme.
+                window.getDecorView();
+                window.getAttributes().width = ViewGroup.LayoutParams.MATCH_PARENT;
+                window.getAttributes().height = ViewGroup.LayoutParams.MATCH_PARENT;
+                window.getAttributes().layoutInDisplayCutoutMode = LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+                window.setType(WindowManager.LayoutParams.TYPE_VOLUME_OVERLAY);
+                window.getAttributes().setFitInsetsTypes(0 /* types */);
+                window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                window.addFlags(
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                                | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
+                                | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                                | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                                | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+            }
         }
 
         @Override
@@ -2470,10 +2506,25 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
                 }
             }
 
+            Window window = getWindow();
             if (mBackgroundDrawable == null) {
                 mBackgroundDrawable = new ScrimDrawable();
                 mScrimAlpha = 1.0f;
             }
+
+            ContentResolver contentResolver = mContext.getContentResolver();
+            int scale = Settings.System.getInt(contentResolver,
+                    Settings.System.BLUR_SCALE_PREFERENCE_KEY, 10);
+            if (scale==0) scale=1;
+            int radius = Settings.System.getInt(contentResolver,
+                    Settings.System.BLUR_RADIUS_PREFERENCE_KEY, 5);
+            if (radius==0) radius=1;
+            Context ctx = mContext;
+            int[] dim = DisplayUtils.getRealDimensionDisplay(ctx);
+            Bitmap bmp = DisplayUtils.TakeScreenshotSurface(ctx);
+            Bitmap bitMap = new BlurUtils(ctx).renderScriptBlur(
+                    Bitmap.createScaledBitmap(bmp,
+                    dim[0] / scale, dim[1] / scale, false), radius);
 
             // If user entered from the lock screen and smart lock was enabled, disable it
             int user = KeyguardUpdateMonitor.getCurrentUser();
@@ -2482,6 +2533,21 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
                 mLockPatternUtils.requireCredentialEntry(KeyguardUpdateMonitor.getCurrentUser());
                 showSmartLockDisabledMessage();
             }
+
+            BitmapDrawable blurBackground = new BitmapDrawable(bitMap);
+            BitmapDrawable blurFilter = new BitmapDrawable(bitMap);
+            int colorPrimary = com.android.settingslib.Utils.getColorAttr(ctx,
+                    R.attr.colorPrimary).getDefaultColor();
+            ContentResolver resolver = ctx.getContentResolver();
+            boolean combinedBlurEnable = Settings.System.getIntForUser(resolver,
+                    Settings.System.COMBINED_BLUR, 0, UserHandle.USER_CURRENT) == 1;
+            if (combinedBlurEnable) blurFilter.setTint(colorPrimary);
+            int filter = combinedBlurEnable ? Color.parseColor("#38FFFFFF") : Color.WHITE;
+            ColorFilter colorFill = new PorterDuffColorFilter(filter, PorterDuff.Mode.MULTIPLY);
+            blurBackground.setColorFilter(colorFill);
+            LayerDrawable combinedBackground = new LayerDrawable(new Drawable[] {blurFilter, blurBackground});
+            window.setBackgroundDrawable(
+                    mBlurStyleEnable ? (combinedBlurEnable ? combinedBackground : blurBackground) : null);
         }
 
         protected void fixNavBarClipping() {
@@ -2530,7 +2596,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
             super.onStart();
             mGlobalActionsLayout.updateList();
 
-            if (mBackgroundDrawable instanceof ScrimDrawable) {
+            if (mBackgroundDrawable instanceof ScrimDrawable && !mBlurStyleEnable) {
                 mColorExtractor.addOnColorsChangedListener(this);
                 GradientColors colors = mColorExtractor.getNeutralColors();
                 updateColors(colors, false /* animate */);
@@ -2544,7 +2610,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
          * @param animate Interpolates gradient if true, just sets otherwise.
          */
         private void updateColors(GradientColors colors, boolean animate) {
-            if (!(mBackgroundDrawable instanceof ScrimDrawable)) {
+            if (!(mBackgroundDrawable instanceof ScrimDrawable && mBlurStyleEnable)) {
                 return;
             }
             ((ScrimDrawable) mBackgroundDrawable).setColor(Color.BLACK, animate);
