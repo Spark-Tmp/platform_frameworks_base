@@ -32,6 +32,7 @@ public class FooterViewButton extends AlphaOptimizedButton {
 
     private static final String BLUR_STYLE =
         "system:" + Settings.System.BLUR_STYLE_PREFERENCE_KEY;
+    private boolean mBlurStyleEnable;
 
     public FooterViewButton(Context context) {
         this(context, null);
@@ -51,11 +52,16 @@ public class FooterViewButton extends AlphaOptimizedButton {
         TunerService tunerService = Dependency.get(TunerService.class);
         tunerService.addTunable((key, newValue) -> {
             if (key.equals(BLUR_STYLE)) {
-            	Drawable bg = getBackground();
-            	int alphaBlur = ActivatableNotificationView.mIsBlurCombinedEnabled ? 100 : 153;
-                if (bg != null) bg.setAlpha(TunerService.parseIntegerSwitch(newValue, false) ? alphaBlur : 255);
+            	mBlurStyleEnable = TunerService.parseIntegerSwitch(newValue, false);
+                updateBackground();
             }
         },  BLUR_STYLE);
+    }
+
+    public void updateBackground() {
+    	Drawable bg = getBackground();
+    	int alphaBlur = ActivatableNotificationView.mIsBlurCombinedEnabled ? 100 : 153;
+    	if (bg != null) bg.setAlpha(mBlurStyleEnable ? alphaBlur : 255);
     }
 
     /**
