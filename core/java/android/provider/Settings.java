@@ -6190,6 +6190,12 @@ public final class Settings {
         public static final String CUSTOM_TRANSITIONS_KEY = "custom_transitions_page_tile";
 
         /**
+         * Settings style
+         * @hide
+         */
+        public static final String SETTINGS_STYLE = "settings_style";
+
+        /**
          * These are all public system settings
          *
          * @hide
