@@ -18,6 +18,8 @@ package com.android.systemui.qs.tiles.dialog;
 import static com.android.systemui.Prefs.Key.QS_HAS_TURNED_OFF_MOBILE_DATA;
 import static com.android.systemui.qs.tiles.dialog.InternetDialogController.MAX_WIFI_ENTRY_COUNT;
 
+import static com.android.systemui.util.PluralMessageFormaterKt.icuMessageFormat;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -656,9 +658,9 @@ public class InternetDialog extends SystemUIDialog implements
         } else if (mInternetDialogController.isHotspotEnabled()) {
             int numDevices = mInternetDialogController.getHotspotNumDevices();
             if (numDevices > 0) {
-                return mContext.getResources().getQuantityString(
-                        R.plurals.quick_settings_internet_hotspot_summary_num_devices,
-                        numDevices, numDevices);
+                return icuMessageFormat(mContext.getResources(),
+                        R.string.quick_settings_internet_hotspot_summary_num_devices,
+                        numDevices);
             }
             return mContext.getString(R.string.switch_bar_on);
         }

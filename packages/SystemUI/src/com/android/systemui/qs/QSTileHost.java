@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.os.Build;
+import android.os.Handler;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Settings;
@@ -136,6 +137,7 @@ public class QSTileHost implements QSHost, Tunable, PluginListener<QSFactory>, D
     public QSTileHost(Context context,
             StatusBarIconController iconController,
             QSFactory defaultFactory,
+            @Main Handler mainHandler,
             @Main Executor mainExecutor,
             PluginManager pluginManager,
             TunerService tunerService,

@@ -107,7 +107,7 @@ public class BlurView extends ImageView {
 
         boolean combinedBlur = Settings.System.getInt(mContext.getContentResolver(), "combined_blur", 0) == 1;
         int combinedColor = setAlphaComponent(mContext.getColor(
-                                com.android.settingslib.collapsingtoolbar.R.color.blur_color),
+                                com.android.settingslib.widget.R.color.blur_color),
                                 combinedBlur ? 205 : 100);
 
         if (Settings.System.getInt(mContext.getContentResolver(), "blur_style", 0) == 1) {

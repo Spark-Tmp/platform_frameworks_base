@@ -40,7 +40,7 @@ public class NavbarActivity extends TunerActivity {
         if (getFragmentManager().findFragmentByTag(TAG_TUNER) == null) {
             final String action = getIntent().getAction();
             final PreferenceFragment fragment = new NavBarTuner();
-            getFragmentManager().beginTransaction().replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
+            getFragmentManager().beginTransaction().replace(com.android.settingslib.widget.R.id.content_frame,
                     fragment, TAG_TUNER).commit();
         }
     }

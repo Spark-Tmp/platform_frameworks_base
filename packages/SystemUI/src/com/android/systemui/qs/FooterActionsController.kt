@@ -86,7 +86,7 @@ internal class FooterActionsController @Inject constructor(
     private val secureSetting: SecureSettings,
     private val handler: Handler,
     private val configurationController: ConfigurationController,
-    private val carrierTextManagerBuilder: CarrierTextManager.Builder
+    private val carrierTextManagerBuilder: CarrierTextManager.Builder,
     private val tunerService: TunerService,
     private val qsPanelController: QSPanelController,
 ) : ViewController<FooterActionsView>(view) {

@@ -46,6 +46,7 @@ import android.os.Handler;
 import com.android.systemui.navigationbar.buttons.KeyButtonView;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.PackageManagerWrapper;
+import com.android.systemui.shade.NotificationPanelViewController;
 
 import java.util.ArrayList;
 import java.util.List;
