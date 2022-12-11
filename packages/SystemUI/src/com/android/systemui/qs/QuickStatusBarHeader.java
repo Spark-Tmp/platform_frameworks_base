@@ -17,8 +17,11 @@ package com.android.systemui.qs;
 import static android.app.StatusBarManager.DISABLE2_QUICK_SETTINGS;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
+import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -28,6 +31,7 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.AlarmClock;
 import android.provider.CalendarContract;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Pair;
 import android.view.DisplayCutout;
@@ -37,6 +41,7 @@ import android.view.Gravity;
 import android.graphics.drawable.Drawable;
 import android.view.WindowInsets;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Space;
 import android.widget.TextClock; 
@@ -66,13 +71,15 @@ import java.util.List;
 public class QuickStatusBarHeader extends FrameLayout implements
         View.OnClickListener, View.OnLongClickListener {
 
+    public static final String SEARCH_PROVIDER_SETTINGS_KEY = "SEARCH_PROVIDER_PACKAGE_NAME";
+    public static final String GSA_PACKAGE = "com.google.android.googlequicksearchbox";
+
     private boolean mExpanded;
     private boolean mQsDisabled;
 
     public boolean mQsTileTint;
     public boolean mBlurStyleEnabled;
     public boolean mIsBlurCombinedEnabled;
-    private Drawable mClockBg;
 
     @Nullable
     private TouchAnimator mAlphaAnimator;
@@ -92,6 +99,8 @@ public class QuickStatusBarHeader extends FrameLayout implements
     private TextClock mJrClock;
     private LinearLayout mJrDateContainer;
 
+    private LinearLayout mSystemIconContainer;
+
     //private View mQSCarriers;
     private ViewGroup mClockContainer;
     private Space mDatePrivacySeparator;
@@ -100,6 +109,9 @@ public class QuickStatusBarHeader extends FrameLayout implements
     private View mRightLayout;
     private View mDateContainer;
     private View mPrivacyContainer;
+    private View mNadContainer;
+    private ImageView mNadShortcut;
+    private ImageView mSearch;
 
     private BatteryMeterView mBatteryRemainingIcon;
     private StatusIconContainer mIconContainer;
@@ -172,6 +184,12 @@ public class QuickStatusBarHeader extends FrameLayout implements
         mClockContainer.setOnLongClickListener(this);
         mJrClock = findViewById(R.id.jr_clock);
 
+        mSearch = findViewById(R.id.search_shortcut);
+        mSearch.setOnClickListener(this);
+        mNadContainer = findViewById(R.id.nad_container);
+        mNadContainer.setOnClickListener(this);
+        mNadShortcut = findViewById(R.id.nad_shortcut);
+        mSystemIconContainer = findViewById(R.id.icon_container);
         
         mDatePrivacySeparator = findViewById(R.id.space);
         // Tint for the battery icons are handled in setupHost()
@@ -200,11 +218,9 @@ public class QuickStatusBarHeader extends FrameLayout implements
         colorBlurInactiveAlpha = Utils.applyAlpha(0.6f, Utils.getColorAttrDefaultColor(mContext, R.attr.offStateColor));
         colorCombinedBlurInactiveAlpha = Utils.applyAlpha(0.4f, Utils.getColorAttrDefaultColor(mContext, R.attr.offStateColor));
 
-        mClockBg = mJrClock.getBackground();
-        
         mIconsAlphaAnimatorFixed = new TouchAnimator.Builder()
                 //.addFloat(mIconContainer, "alpha", 0, 1)
-                .addFloat(mBatteryRemainingIcon, "alpha", 0, 1)
+                .addFloat(mNadContainer, "alpha", 0, 1)
                 .build();
     }
 
@@ -258,6 +274,31 @@ public class QuickStatusBarHeader extends FrameLayout implements
         updateResources();
     }
 
+    @Nullable
+    public static String getSearchWidgetPackageName(@NonNull Context context) {
+        String providerPkg = Settings.Global.getString(context.getContentResolver(),
+                SEARCH_PROVIDER_SETTINGS_KEY);
+        if (providerPkg == null) {
+            SearchManager searchManager = context.getSystemService(SearchManager.class);
+            ComponentName componentName = searchManager.getGlobalSearchActivity();
+            if (componentName != null) {
+                providerPkg = searchManager.getGlobalSearchActivity().getPackageName();
+            }
+            if (providerPkg == null && isGSAEnabled(context)) {
+                providerPkg = GSA_PACKAGE;
+            }
+        }
+        return providerPkg;
+    }
+
+    public static boolean isGSAEnabled(Context context) {
+        try {
+            return context.getPackageManager().getApplicationInfo(GSA_PACKAGE, 0).enabled;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
     @Override
     public void onClick(View v) {
         if (v == mClockContainer) {
@@ -269,6 +310,15 @@ public class QuickStatusBarHeader extends FrameLayout implements
             builder.appendPath(Long.toString(System.currentTimeMillis()));
             final Intent todayIntent = new Intent(Intent.ACTION_VIEW, builder.build());
             mActivityStarter.postStartActivityDismissingKeyguard(todayIntent, 0);
+        } else if (v == mSearch) {
+        	String searchPackage = getSearchWidgetPackageName(mContext);
+            mActivityStarter.startActivity(new Intent("android.search.action.GLOBAL_SEARCH").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK).setPackage(searchPackage), true);
+        } else if (v == mNadContainer) {
+            final Intent nIntent = new Intent();
+            nIntent.setComponent(new ComponentName("com.android.settings",
+                    "com.android.settings.Settings$NusantaraWingsActivity"));
+            mActivityStarter.startActivity(nIntent, true /* dismissShade */);
         }
     }
 
@@ -386,14 +436,12 @@ public class QuickStatusBarHeader extends FrameLayout implements
             return;
         }
         TouchAnimator.Builder builder = new TouchAnimator.Builder()
-                .addFloat(mJrDateContainer, "translationX", 0, 20f )
                 .addFloat(mJrDateContainer, "translationY", 0, 30f )
                 .addFloat(mJrClock, "scaleX", 1f , 1.5f)
                 .addFloat(mJrClock, "scaleY", 1f, 1.5f)
-                .addFloat(mJrClock, "translationX", 1f, 55f)
-                .addFloat(mBatteryRemainingIcon, "translationY", 2f, 112f)
-                .addFloat(mIconContainer, "translationX", 0, -148f)
-                .addFloat(mIconContainer, "translationY", 0, 30f )
+                .addFloat(mJrClock, "translationX", 1f, 45f)
+                .addFloat(mSearch, "alpha", 0, 1f)
+                .addFloat(mSystemIconContainer, "translationY", 0, 30f )
                 .setListener(new TouchAnimator.ListenerAdapter() {
                     @Override
                     public void onAnimationAtEnd() {
@@ -426,7 +474,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
         } else {
             mIconsAlphaAnimator = null;
             //mIconContainer.setAlpha(1);
-            mBatteryRemainingIcon.setAlpha(1);
+            mNadContainer.setAlpha(1);
         }
 
     }
@@ -438,7 +486,7 @@ public class QuickStatusBarHeader extends FrameLayout implements
         quickQSPanelController.setExpanded(expanded);
         updateEverything();
         if (expanded && mPrivacyChip.getVisibility() == View.VISIBLE) {
-            mBatteryRemainingIcon.setAlpha(0);
+            mNadContainer.setAlpha(0);
         }
     }
 
@@ -487,9 +535,15 @@ public class QuickStatusBarHeader extends FrameLayout implements
         mQsTileTint = qsTileTint;
     	boolean isBlurEnable = mBlurStyleEnabled;
         int alphaBlur = mIsBlurCombinedEnabled ? 100 : 153;
-        mClockBg.setAlpha(qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255);
-        
-        mJrClock.setTextColor(qsTileTint ? colorActiveAccent : colorNonActive);
+        int alpha = qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255;
+        int colorAlphaBlur = mIsBlurCombinedEnabled ? colorCombinedBlurInactiveAlpha : colorBlurInactiveAlpha;
+        mNadShortcut.setColorFilter(qsTileTint ? colorActiveAccent : colorNonActive);
+        Drawable nadBg = mNadContainer.getBackground();
+        if (nadBg != null) nadBg.setAlpha(qsTileTint || isBlurEnable ? (isBlurEnable ? alphaBlur : 51) : 255);
+        mSearch.setBackground(mContext.getDrawable(R.drawable.qs_clock_bg));
+        int tintColor = qsTileTint || isBlurEnable ? (isBlurEnable ? colorAlphaBlur : colorInactiveAlpha) : colorInactive;
+        final Drawable bg = mSearch.getBackground();
+        if (bg != null) bg.setTint(tintColor);
     }
 
     public void updateAlpha(boolean isBlurEnable) {
