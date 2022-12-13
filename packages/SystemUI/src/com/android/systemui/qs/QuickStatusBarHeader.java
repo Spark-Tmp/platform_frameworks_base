@@ -436,12 +436,12 @@ public class QuickStatusBarHeader extends FrameLayout implements
             return;
         }
         TouchAnimator.Builder builder = new TouchAnimator.Builder()
-                .addFloat(mJrDateContainer, "translationY", 0, 30f )
+                .addFloat(mJrDateContainer, "translationY", 0, 30f)
                 .addFloat(mJrClock, "scaleX", 1f , 1.5f)
                 .addFloat(mJrClock, "scaleY", 1f, 1.5f)
-                .addFloat(mJrClock, "translationX", 1f, 45f)
+                .addFloat(mJrClock, "translationX", 1f, 35f)
                 .addFloat(mSearch, "alpha", 0, 1f)
-                .addFloat(mSystemIconContainer, "translationY", 0, 30f )
+                .addFloat(mSystemIconContainer, "translationY", 0, 30f)
                 .setListener(new TouchAnimator.ListenerAdapter() {
                     @Override
                     public void onAnimationAtEnd() {

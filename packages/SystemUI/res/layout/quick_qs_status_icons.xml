@@ -32,6 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical|start"
+        android:layout_marginStart="4dp"
         android:layout_weight="1.0"
         android:gravity="center_vertical|start"
         android:orientation="vertical" >
@@ -39,12 +40,13 @@
         <TextClock
             android:id="@+id/jr_clock"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="30dp"
             android:layout_gravity="start|center"
-            android:format12Hour="h:mm a"
-            android:format24Hour="kk:mm"
+            android:layout_marginTop="2dp"
             android:gravity="start|center"
-            android:textSize="30dp"
+            android:format12Hour="h:mm"
+            android:format24Hour="kk:mm"
+            android:textSize="20sp"
             android:textAppearance="@style/TextAppearance.StatusBar.Clock"
             android:textColor="?android:textColorPrimary" />
 
@@ -55,7 +57,7 @@
             android:layout_gravity="start|center"
             android:gravity="start|center"
             android:orientation="horizontal"
-            android:paddingTop="4dp" >
+            android:layout_marginTop="12dp" >
 
             <TextClock
                 android:layout_width="match_parent"
@@ -63,7 +65,6 @@
                 android:layout_gravity="start|center"
                 android:format12Hour="EEEE, MMMM dd"
                 android:format24Hour="EEEE, dd MMMM"
-                android:gravity="start|center"
                 android:singleLine="true"
                 android:textAppearance="@style/TextAppearance.StatusBar.Clock"
                 android:textColor="?android:textColorPrimary" />
