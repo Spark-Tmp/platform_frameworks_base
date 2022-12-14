@@ -151,8 +151,8 @@ internal class FooterActionsController @Inject constructor(
         view.findViewById(R.id.security_footers_container)
     private val customCarrierText: CustomCarrierText = view.findViewById(R.id.carrier_label_footer)
     private val carrierTextManager = carrierTextManagerBuilder
-        .setShowAirplaneMode(true)
-        .setShowMissingSim(true)
+        .setShowAirplaneMode(customCarrierText.getShowAirplaneMode())
+        .setShowMissingSim(customCarrierText.getShowMissingSim())
         .build()
     private val powerMenuLite: ImageView = view.findViewById(R.id.pm_lite)
     private val multiUserSwitchController = multiUserSwitchControllerFactory.create(view)
@@ -314,7 +314,6 @@ internal class FooterActionsController @Inject constructor(
         fgsManagerFooterController.setOnVisibilityChangedListener(visibilityListener)
 
         configurationController.addCallback(configurationListener)
-        carrierTextManager.setListening(null)
         updateResources()
         updateView()
     }
@@ -361,6 +360,7 @@ internal class FooterActionsController @Inject constructor(
         setListening(false)
         multiUserSetting.isListening = false
         configurationController.removeCallback(configurationListener)
+        carrierTextManager.setListening(null)
     }
 
     fun setListening(listening: Boolean) {
