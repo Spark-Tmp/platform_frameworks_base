@@ -143,6 +143,11 @@ public class FlashlightStrengthTile extends FlashlightTile implements TouchableQ
     }
 
     @Override
+    public boolean isDeviceSupported() {
+        return mSupportsSettingFlashLevel;
+    }
+
+    @Override
     protected void handleClick(@Nullable View view) {
         boolean newState = mClicked ? !mState.value : true;
         if (mSupportsSettingFlashLevel && newState) {

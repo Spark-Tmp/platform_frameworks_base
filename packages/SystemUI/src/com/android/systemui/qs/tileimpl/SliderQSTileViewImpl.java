@@ -50,11 +50,12 @@ public class SliderQSTileViewImpl extends QSTileViewImpl {
     private String mSettingsKey;
     private SettingObserver mSettingObserver;
 
-    public SliderQSTileViewImpl(Context context, QSIconView icon, boolean collapsed, View.OnTouchListener touchListener, String settingKey) {
+    public SliderQSTileViewImpl(Context context, QSIconView icon, boolean collapsed, View.OnTouchListener touchListener,
+            String settingKey, boolean isDeviceSupported) {
         super(context, icon, collapsed);
         mSettingsKey = settingKey;
         percentageDrawable = new PercentageDrawable();
-        percentageDrawable.setAlpha(64);
+        percentageDrawable.setAlpha(isDeviceSupported ? 64 : 0);
         updatePercentBackground(false /* default */);
         mSettingObserver = new SettingObserver(new Handler(Looper.getMainLooper()));
         setOnTouchListener(touchListener);

@@ -282,7 +282,8 @@ public class QSFactoryImpl implements QSFactory {
         QSIconView icon = tile.createTileView(context);
         if (Arrays.asList(SLIDER_TILES).contains(tile.getTileSpec())) {
             TouchableQSTile touchableTile = (TouchableQSTile) tile;
-            return new SliderQSTileViewImpl(context, icon, collapsedView, touchableTile.getTouchListener(), touchableTile.getSettingsSystemKey());
+            return new SliderQSTileViewImpl(context, icon, collapsedView, touchableTile.getTouchListener(),
+                    touchableTile.getSettingsSystemKey(), touchableTile.isDeviceSupported());
         }
         return new QSTileViewImpl(context, icon, collapsedView);
     }
